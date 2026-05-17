@@ -3,20 +3,20 @@
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  User, 
-  Lock, 
-  ArrowRight, 
-  Zap, 
-  Github, 
-  Chrome 
+import {
+  User,
+  Lock,
+  ArrowRight,
+  Zap,
+  Github,
+  Chrome
 } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-   const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--color-blue-50),_transparent_50%)]">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
@@ -63,12 +63,12 @@ export default function LoginPage() {
           </Link>
           <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">Nanda<span className="text-brand-blue">Cloud</span></h1>
           <p className="text-slate-500">Bem-vindo de volta.</p>
-           <p className="text-slate-200">Acesse sua plataforma.</p>
+          <p className="text-slate-200">Acesse sua plataforma.</p>
         </div>
 
         <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-2xl shadow-blue-500/5">
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2"
@@ -83,8 +83,8 @@ export default function LoginPage() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-blue transition-colors">
                   <User className="w-5 h-5" />
                 </div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   autoComplete="off"
                   value={username}
@@ -104,8 +104,8 @@ export default function LoginPage() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-blue transition-colors">
                   <Lock className="w-5 h-5" />
                 </div>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -120,8 +120,8 @@ export default function LoginPage() {
               <span className="text-sm text-slate-500 font-medium">Lembrar acesso</span>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading}
               className="w-full bg-brand-blue text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50"
             >
@@ -143,7 +143,7 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            
+
             <button className="flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors font-bold text-sm text-slate-600">
               <Chrome className="w-4 h-4" /> Google
             </button>
@@ -157,3 +157,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
