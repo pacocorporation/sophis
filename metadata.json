@@ -1,0 +1,15 @@
+{
+  "name": "Sophis Cloud",
+  "description": "SaaS completo para farmácias com CRM, Omnichannel, IA Nanda e Automação.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "CRM",
+    "Omnichannel Chat",
+    "Artificial Intelligence",
+    "Dashboard",
+    "Inventory Management"
+  ]
+}

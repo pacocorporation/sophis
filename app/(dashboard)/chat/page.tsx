@@ -1,0 +1,489 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Search, 
+  MoreVertical, 
+  Paperclip, 
+  Send, 
+  CheckCheck, 
+  Smile, 
+  Mic,
+  Square,
+  Trash2,
+  Phone, 
+  Video,
+  Bot,
+  User,
+  ShoppingBag,
+  FileText,
+  MessageSquare,
+  Archive,
+  ShieldAlert,
+  Inbox,
+  X,
+  Maximize2
+} from 'lucide-react';
+import { useStore, Message } from '@/hooks/use-store';
+import Image from 'next/image';
+
+const generateId = () => `${Date.now()}`;
+
+export default function ChatPage() {
+  const { state, addMessage, updateLeadStatus } = useStore();
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [inputText, setInputText] = useState('');
+  const [isNandaThinking, setIsNandaThinking] = useState(false);
+  const [nandaInsight, setNandaInsight] = useState<string | null>(null);
+  const [isInsightLoading, setIsInsightLoading] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [currentView, setCurrentView] = useState<'active' | 'archived' | 'spam'>('active');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  const EMOJI_CATEGORIES = [
+    { label: '😊 Rostos', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿'] },
+    { label: '👋 Gestos', emojis: ['👍','👎','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👋','🤚','🖐️','✋','🖖','👏','🙌','🤲','🤜','🤛','✊','👊','🤚','🙏','✍️','💅','🤳','💪','🦵','🦶','👃','👂','🦻'] },
+    { label: '❤️ Símbolos', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☯️','✡️','🔯','🕎','☸️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🔕'] },
+    { label: '🌿 Natureza', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🌱','🌿','☘️','🍀','🌸','🌺','🌻','🌹','🥀','🌷','🌳','🌴','🌵','🍁','🍂','🍃','🍄','🌾','💐','🌊','🌈','⛅','🔥','🌟','⭐','✨','💫','🌙','🌞','🌝','🌛','🌜','🌚'] },
+  ];
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(s => s + 1);
+      }, 1000);
+    } else {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setRecordingSeconds(0);
+    }
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, [isRecording]);
+
+  const formatRecordingTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const handleStartRecording = async () => {
+    if (!activeChat?.id) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert('Seu navegador não suporta gravação de áudio.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setAudioBlob(blob);
+        setAudioUrl(url);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+    } catch (err) {
+      console.error('[audio] mic error:', err);
+      alert('Erro ao acessar o microfone.');
+    }
+  };
+
+  const handleStopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  };
+
+  const handleCancelRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    setAudioBlob(null);
+    if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null); }
+  };
+
+  const handleSendAudio = () => {
+    if (!audioBlob || !activeChat?.id) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      addMessage(activeChat.id, {
+        id: generateId(),
+        senderId: 'admin',
+        text: '🎤 Áudio',
+        timestamp: new Date().toISOString(),
+        type: 'audio',
+        data: dataUrl,
+      });
+      setAudioBlob(null);
+      if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null); }
+    };
+    reader.readAsDataURL(audioBlob);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredChats = state.chats.filter(c => c.status === currentView);
+  const activeChat = state.chats.find(c => c.id === activeChatId) || (filteredChats.length > 0 ? filteredChats[0] : null);
+  const activeClient = state.leads.find(l => l.id === activeChat?.clientId);
+
+  // Find the last image in the conversation
+  const lastPrescription = activeChat?.messages.filter(m => m.type === 'image').slice(-1)[0];
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [activeChat?.messages]);
+
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const targetChatId = activeChat?.id;
+    if (!inputText.trim() || !targetChatId) return;
+
+    const messageId = generateId();
+    const userMessage: Message = {
+      id: messageId,
+      senderId: 'admin',
+      text: inputText,
+      timestamp: new Date().toISOString(),
+      type: 'text'
+    };
+
+    addMessage(targetChatId, userMessage);
+    const promptToTrigger = inputText;
+    setInputText('');
+
+    if (promptToTrigger.toLowerCase().includes('nanda') || promptToTrigger.length > 5) {
+      await handleNandaTrigger(promptToTrigger, targetChatId);
+    }
+  };
+
+  const handleNandaTrigger = async (userPrompt: string, targetChatId: string) => {
+    setIsNandaThinking(true);
+    try {
+      const res = await fetch('/api/nanda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userPrompt,
+          trainingExamples: state.trainingExamples,
+          products: state.products.slice(0, 20),
+        }),
+      });
+      const data = await res.json();
+      const nandaMessage: Message = {
+        id: generateId(),
+        senderId: 'nanda',
+        text: data.response || 'Não consegui processar agora.',
+        timestamp: new Date().toISOString(),
+        type: 'text'
+      };
+      addMessage(targetChatId, nandaMessage);
+    } catch (e) {
+      console.error('[chat/nanda]', e);
+    } finally {
+      setIsNandaThinking(false);
+    }
+  };
+
+  const handlePrescriptionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChat?.id) return;
+    e.target.value = '';
+
+    setIsUploadingFile(true);
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      const mimeType = file.type || 'image/jpeg';
+
+      // Add image message to UI immediately
+      addMessage(activeChat.id, {
+        id: generateId(),
+        senderId: 'admin',
+        text: `📎 Receita: ${file.name}`,
+        timestamp: new Date().toISOString(),
+        type: 'image',
+        data: dataUrl,
+      });
+
+      try {
+        const res = await fetch('/api/nanda', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: 'Analise esta receita médica. Liste cada medicamento, dosagem e instrução de uso. IMPORTANTE: Verifique no inventário fornecido se temos esses medicamentos disponíveis. Para cada item encontrado no estoque, informe o preço e confirme que temos para pronta entrega. Ao final, alerte sobre a necessidade de validação pelo farmacêutico.',
+            imageBase64: base64,
+            imageMimeType: mimeType,
+            trainingExamples: state.trainingExamples.slice(0, 5),
+            products: state.products.slice(0, 50),
+          }),
+        });
+        const data = await res.json();
+        addMessage(activeChat.id, {
+          id: generateId(),
+          senderId: 'nanda',
+          text: data.response || 'Não consegui ler a receita. Tente uma foto mais nítida.',
+          timestamp: new Date().toISOString(),
+          type: 'text',
+        });
+      } catch {
+        addMessage(activeChat.id, {
+          id: generateId(),
+          senderId: 'nanda',
+          text: 'Erro ao analisar a receita. Tente novamente.',
+          timestamp: new Date().toISOString(),
+          type: 'text',
+        });
+      } finally {
+        setIsUploadingFile(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const generateLocalInsight = (messages: Message[], clientName: string) => {
+    const texts = messages.map(m => m.text.toLowerCase()).join(' ');
+    const buySignals = ['preço', 'quanto', 'comprar', 'quero', 'preciso', 'tem', 'disponível', 'valor', 'pedido'].filter(k => texts.includes(k));
+    const healthSignals = ['dor', 'febre', 'remédio', 'receita', 'sintoma', 'medicamento', 'pressão', 'diabetes'].filter(k => texts.includes(k));
+    const urgencySignals = ['urgente', 'hoje', 'agora', 'rápido', 'preciso muito', 'emergência'].filter(k => texts.includes(k));
+    const parts: string[] = [];
+    if (urgencySignals.length > 0) parts.push(`⚡ ${clientName || 'Cliente'} demonstrou urgência.`);
+    if (healthSignals.length > 0) parts.push(`💊 Interesse em: ${healthSignals.slice(0, 2).join(', ')}.`);
+    if (buySignals.length >= 2) parts.push(`🔥 Alta intenção de compra.`);
+    return parts.length > 0 ? parts.join('\n') : `Aguardando interações para análise.`;
+  };
+
+  const handleNandaInsight = async () => {
+    if (!activeChat) return;
+    setIsInsightLoading(true);
+    setNandaInsight(null);
+    const clientName = activeClient?.name || 'Cliente';
+    try {
+      const history = activeChat.messages.slice(-6).map(m => `${m.senderId === 'admin' ? 'Atendente' : 'Cliente'}: ${m.text}`).join('\n');
+      const res = await fetch('/api/nanda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Analise a intenção do cliente ${clientName}. Conversa:\n${history}`,
+          trainingExamples: state.trainingExamples.slice(0, 5),
+          products: state.products.slice(0, 10),
+        }),
+      });
+      const data = await res.json();
+      setNandaInsight(data.response || generateLocalInsight(activeChat.messages, clientName));
+    } catch {
+      setNandaInsight(generateLocalInsight(activeChat.messages, clientName));
+    } finally { setIsInsightLoading(false); }
+  };
+
+  return (
+    <div className="flex h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5">
+      {/* ImageViewer Modal */}
+      <AnimatePresence>
+        {viewingImage && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-900/90 backdrop-blur-md"
+            onClick={() => setViewingImage(null)}
+          >
+            <button className="absolute top-8 right-8 text-white hover:scale-110 transition-transform"><X className="w-10 h-10"/></button>
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full h-full max-w-5xl max-h-screen flex items-center justify-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <img src={viewingImage} alt="Preview" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chats List */}
+      <div className="w-96 border-r border-slate-100 flex flex-col bg-slate-50/30">
+        <div className="p-6">
+          <h2 className="text-xl font-bold mb-6 italic">Caixa de Entrada</h2>
+          <div className="flex gap-2 mb-6">
+            <button onClick={() => { setCurrentView('active'); setActiveChatId(null); }} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === 'active' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-400'}`}><Inbox className="w-3 h-3" /> Principal</button>
+            <button onClick={() => { setCurrentView('archived'); setActiveChatId(null); }} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === 'archived' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-400'}`}><Archive className="w-3 h-3" /> Arquivados</button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input type="text" placeholder="Pesquisar..." className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm shadow-sm" />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {filteredChats.map((chat) => {
+            const client = state.leads.find(l => l.id === chat.clientId);
+            const isActive = chat.id === activeChat?.id;
+            return (
+              <button key={chat.id} onClick={() => setActiveChatId(chat.id)} className={`w-full flex items-center gap-4 p-6 transition-all border-b border-slate-50 ${isActive ? 'bg-white border-l-4 border-l-brand-blue' : ''}`}>
+                <div className="relative w-14 h-14">
+                  <Image src="/avatar-default.svg" alt="Avatar" fill className="rounded-2xl" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex justify-between items-center mb-1">
+                    <p className={`font-bold truncate ${isActive ? 'text-brand-blue' : 'text-slate-900'}`}>{client?.name}</p>
+                    <span className="text-[10px] text-slate-400">14:20</span>
+                  </div>
+                  <p className="text-xs text-slate-500 truncate">{chat.lastMessage}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {activeChat ? (
+        <div className="flex-1 flex flex-col bg-white">
+          <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
+              <div>
+                <p className="font-bold text-slate-900">{activeClient?.name}</p>
+                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-xs font-bold text-slate-400 uppercase">Online</p></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Phone className="w-5 h-5"/></button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Video className="w-5 h-5"/></button>
+            </div>
+          </div>
+
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed opacity-90">
+             {activeChat.messages.map((msg) => {
+               const isMe = msg.senderId === 'admin';
+               const isAI = msg.senderId === 'nanda';
+               return (
+                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                   <div className={`max-w-[70%] p-4 rounded-3xl relative ${isMe ? 'bg-brand-blue text-white rounded-tr-none' : isAI ? 'bg-slate-900 text-white rounded-tl-none border-t-2 border-blue-400' : 'bg-slate-100'}`}>
+                     {isAI && <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-[10px] uppercase"><Bot className="w-3 h-3" /> Nanda AI</div>}
+                     
+                     {msg.type === 'audio' && msg.data ? (
+                       <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
+                     ) : msg.type === 'image' && msg.data ? (
+                       <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
+                         <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
+                           <Maximize2 className="w-5 h-5" /> Ampliar
+                         </div>
+                       </div>
+                     ) : (
+                       <p className="text-sm font-medium leading-relaxed">{msg.text}</p>
+                     )}
+
+                     <div className={`text-[10px] mt-2 flex items-center gap-1 uppercase font-bold ${isMe || isAI ? 'text-white/50' : 'text-slate-400'}`}>
+                       {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                       {isMe && <CheckCheck className="w-3 h-3" />}
+                     </div>
+                   </div>
+                 </motion.div>
+               )
+             })}
+             {isNandaThinking && (
+               <div className="flex justify-start">
+                 <div className="bg-slate-900 text-blue-300 p-4 rounded-3xl rounded-tl-none flex items-center gap-2 animate-pulse">
+                   <Bot className="w-4 h-4" />
+                   <p className="text-xs font-bold uppercase tracking-widest">Nanda está analisando...</p>
+                 </div>
+               </div>
+             )}
+          </div>
+
+          <div className="p-6 border-t border-slate-50 flex items-center gap-4 bg-slate-50/50">
+             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePrescriptionUpload} />
+             <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6"/></button>
+             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6"/></button>
+             <form onSubmit={handleSendMessage} className="flex-1 relative">
+               <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
+               <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4" /></button>
+             </form>
+             <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-brand-blue hover:text-white'}`}>
+               {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-6 h-6" />}
+             </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-slate-50/50">
+          <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-slate-200 mb-6 border border-slate-100"><MessageSquare className="w-10 h-10" /></div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Selecione uma conversa</h3>
+        </div>
+      )}
+
+      {activeChat && (
+        <div className="w-80 border-l border-slate-50 flex flex-col bg-slate-50/30">
+          <div className="p-8 text-center bg-white border-b border-slate-50 mb-6">
+            <div className="w-24 h-24 rounded-[32px] mx-auto mb-4 border-4 border-slate-50 overflow-hidden relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
+            <h3 className="font-bold text-lg text-slate-900">{activeClient?.name}</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Lead em Negociação</p>
+          </div>
+          <div className="flex-1 px-6 space-y-8">
+            <div className="space-y-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase pl-2">Ações Rápidas</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:bg-brand-blue hover:text-white transition-all">
+                   <ShoppingBag className="w-5 h-5" />
+                   <span className="text-[10px] font-bold">Novo Pedido</span>
+                </button>
+                <button 
+                  onClick={() => lastPrescription?.data && setViewingImage(lastPrescription.data)}
+                  disabled={!lastPrescription}
+                  className={`flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl transition-all ${lastPrescription ? 'hover:bg-brand-red hover:text-white cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}
+                >
+                   <FileText className={`w-5 h-5 ${lastPrescription ? 'text-brand-red group-hover:text-white' : 'text-slate-300'}`} />
+                   <span className="text-[10px] font-bold">{lastPrescription ? 'Ver Receita' : 'Sem Receita'}</span>
+                </button>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase pl-2">IA Insight</p>
+              <div className="bg-slate-900 p-5 rounded-3xl text-white space-y-3">
+                <p className="text-[11px] font-bold text-blue-300 uppercase italic">Resumo da Nanda</p>
+                {isInsightLoading ? <p className="text-xs">Analisando...</p> : <p className="text-xs text-slate-300">{nandaInsight || 'Sem análise.'}</p>}
+                <button onClick={handleNandaInsight} className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 bg-brand-blue rounded-xl text-[10px] font-bold transition-all"><Bot className="w-3 h-3" /> Consultar Nanda</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

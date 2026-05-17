@@ -1,0 +1,9 @@
+{
+    "commentTranslate.targetLanguage": "pt",
+    "files.exclude": {
+        "": true
+    },
+    "search.exclude": {
+        "": true
+    }
+}
