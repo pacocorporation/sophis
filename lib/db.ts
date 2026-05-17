@@ -12,7 +12,7 @@ export const db = {
       if (error) throw error;
       return data;
     },
-    async create(lead: Omit<Lead, 'id'>) {
+    async create(lead: any) {
       const { data, error } = await supabase
         .from('leads')
         .insert(lead)
@@ -22,7 +22,7 @@ export const db = {
       if (error) throw error;
       return data;
     },
-    async update(id: string, updates: Partial<Lead>) {
+    async update(id: string, updates: any) {
       const { data, error } = await supabase
         .from('leads')
         .update(updates)

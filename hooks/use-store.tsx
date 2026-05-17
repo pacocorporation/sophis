@@ -100,6 +100,9 @@ export interface AutomationFlow {
   status: string;
   data: any;
   updatedAt: string;
+  channel?: string;
+  trigger?: string;
+  delay?: string;
 }
 
 export interface Campaign {
@@ -185,7 +188,7 @@ const initialChats: ChatSession[] = [
 
 interface StoreContextType {
   state: StoreState;
-  addLead: (lead: Lead) => void;
+  addLead: (lead: Omit<Lead, 'id' | 'updatedAt'>) => void;
   updateLeadStatus: (id: string, status: Lead['status']) => void;
   updateLead: (lead: Lead) => void;
   deleteLead: (id: string) => void;
@@ -197,7 +200,7 @@ interface StoreContextType {
   setUser: (user: any) => void;
   updateUser: (updates: Partial<StoreState['user']>) => void;
   setProducts: (products: Product[]) => void;
-  addTeamMember: (member: TeamMember) => void;
+  addTeamMember: (member: Omit<TeamMember, 'id'> & { password?: string }) => Promise<void>;
   removeTeamMember: (memberId: string) => void;
   updateTeamMember: (memberId: string, updates: Partial<TeamMember>) => Promise<void>;
   updateMemberPassword: (userId: string, newPassword: string) => Promise<void>;
@@ -206,7 +209,7 @@ interface StoreContextType {
   addFlow: (flow: any) => Promise<void>;
   updateFlow: (flow: AutomationFlow) => Promise<void>;
   deleteFlow: (id: string) => Promise<void>;
-  addCampaign: (campaign: Omit<Campaign, 'id' | 'updatedAt'>) => Promise<void>;
+  addCampaign: (campaign: Omit<Campaign, 'id' | 'updatedAt'>) => Promise<Campaign | undefined>;
   updateCampaign: (campaign: Campaign) => Promise<void>;
   deleteCampaign: (id: string) => Promise<void>;
 }

@@ -44,7 +44,7 @@ const data = [
 
 
 export default function MarketingPage() {
-  const { state, addCampaign, updateCampaign: storeUpdateCampaign, deleteCampaign: storeDeleteCampaign, updateFlow } = useStore();
+  const { state, addCampaign, updateCampaign: storeUpdateCampaign, deleteCampaign: storeDeleteCampaign, updateFlow, addFlow } = useStore();
   const [localCampaigns, setLocalCampaigns] = useState<Campaign[]>([]);
   const automations = state.flows;
 
@@ -520,15 +520,17 @@ export default function MarketingPage() {
                     Cancelar
                   </button>
                   <button 
-                    onClick={() => {
-                      setAutomations([{ 
-                        id: Math.random().toString(), 
+                    onClick={async () => {
+                      await addFlow({ 
                         name: 'Nova Automação', 
                         trigger: 'Pedido Abandonado', 
                         channel: 'Email', 
                         active: true, 
-                        delay: '2 horas' 
-                      }, ...automations]);
+                        delay: '2 horas',
+                        type: 'Email',
+                        status: 'Running',
+                        data: null
+                      });
                       setShowAutomationModal(false);
                     }}
                     className="flex-3 py-4 bg-brand-blue hover:bg-blue-600 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-brand-blue/20 flex items-center justify-center gap-2"

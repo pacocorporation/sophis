@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useStore } from '@/hooks/use-store';
+import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
 

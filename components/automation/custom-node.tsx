@@ -3,10 +3,7 @@
 import React, { useMemo } from 'react';
 import { 
   Handle, 
-  Position, 
-  NodeProps, 
-  Node,
-  HandleProps
+  Position
 } from '@xyflow/react';
 import { 
   MessageSquare, 
@@ -50,7 +47,7 @@ const nodeTitles: Record<string, string> = {
   end: 'Encerrar',
 };
 
-const BaseNode = ({ data, selected, dragging, type }: NodeProps & { type: string }) => {
+const BaseNode = ({ data, selected, dragging, type }: any) => {
   const nodeData = data as any;
   return (
     <motion.div 
@@ -143,4 +140,4 @@ const BaseNode = ({ data, selected, dragging, type }: NodeProps & { type: string
   );
 };
 
-export const CustomNode = (props: NodeProps) => <BaseNode {...props} type={props.type as string} />;
+export const CustomNode = (props: any) => <BaseNode {...props} type={props.type as string} />;
