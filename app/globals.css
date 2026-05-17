@@ -3,7 +3,7 @@
 @theme {
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  
+
   --color-brand-blue: #0057FF;
   --color-brand-red: #E11D48;
 }

@@ -2,14 +2,14 @@
 
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import { 
-  Plus, 
-  ArrowRight, 
-  MessageSquare, 
-  Users, 
-  Bot, 
-  Zap, 
-  BarChart3, 
+import {
+  Plus,
+  ArrowRight,
+  MessageSquare,
+  Users,
+  Bot,
+  Zap,
+  BarChart3,
   LayoutDashboard,
   CheckCircle2,
   Menu,
@@ -20,6 +20,7 @@ import Image from 'next/image';
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -60,7 +61,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="pt-40 pb-20 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
@@ -85,7 +86,7 @@ export default function LandingPage() {
                 Ver Demo ao Vivo
               </Link>
             </div>
-            
+
             <div className="mt-12 flex items-center gap-6 text-slate-400">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -98,23 +99,23 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="relative"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl shadow-blue-500/10 border border-slate-100 aspect-video">
-              <Image 
-                src="/1.png" 
-                alt="Dashboard Nanda Cloud" 
+              <Image
+                src="/1.png"
+                alt="Dashboard Nanda Cloud"
                 fill
                 className="object-cover"
                 unoptimized
               />
             </div>
             {/* Floating UI elements for flair */}
-            <motion.div 
+            <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
               className="absolute -top-10 -right-10 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-4"
@@ -128,7 +129,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
               className="absolute -bottom-10 -left-10 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-4"
@@ -215,7 +216,7 @@ export default function LandingPage() {
               color: "bg-slate-800"
             }
           ].map((feature, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               whileHover={{ y: -10 }}
               className="p-8 rounded-3xl border border-slate-100 hover:border-brand-blue/30 transition-all hover:shadow-2xl hover:shadow-blue-500/5 group"
@@ -266,7 +267,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="relative">
-              <motion.div 
+              <motion.div
                 animate={{ rotate: [0, 5, 0] }}
                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                 className="bg-white p-8 rounded-[40px] shadow-3xl text-slate-900 border-4 border-white/20"
@@ -346,9 +347,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-slate-50 flex flex-col md:row items-center justify-between gap-6">
           <p className="text-slate-400 text-sm">© 2025 SOPHISCloud. Todos os direitos reservados.</p>
           <div className="flex gap-6">
-            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><Zap className="w-5 h-5"/></Link>
-            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><Bot className="w-5 h-5"/></Link>
-            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><MessageSquare className="w-5 h-5"/></Link>
+            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><Zap className="w-5 h-5" /></Link>
+            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><Bot className="w-5 h-5" /></Link>
+            <Link href="#" className="text-slate-400 hover:text-brand-blue transition-colors"><MessageSquare className="w-5 h-5" /></Link>
           </div>
         </div>
       </footer>
