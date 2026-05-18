@@ -14,15 +14,17 @@ import {
   Paperclip,
   Stethoscope,
   Pill,
-  Search
+  Search,
+  FileText
 } from 'lucide-react';
 import { useStore } from '@/hooks/use-store';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  type?: 'text' | 'image';
+  type?: 'text' | 'image' | 'file';
   data?: string;
 }
 
@@ -75,12 +77,13 @@ export function ChatAssistant() {
       const dataUrl = reader.result as string;
       const base64 = dataUrl.split(',')[1];
       const mimeType = file.type || 'image/jpeg';
+      const isPDF = mimeType === 'application/pdf';
 
       const userMessage: Message = {
         role: 'user',
-        content: `Enviou uma imagem para análise: ${file.name}`,
+        content: file.name,
         timestamp: new Date(),
-        type: 'image',
+        type: isPDF ? 'file' : 'image',
         data: dataUrl
       };
       setMessages(prev => [...prev, userMessage]);
@@ -94,14 +97,14 @@ export function ChatAssistant() {
         );
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: response || "Recebi a imagem, mas tive dificuldade em ler os detalhes. Tente enviar uma foto mais nítida.",
+          content: response || "Recebi o documento, mas tive dificuldade em ler os detalhes. Certifique-se de que o documento está nítido.",
           timestamp: new Date()
         }]);
       } catch (error) {
         console.error("Prescription error:", error);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: 'Desculpe, não consegui analisar a receita agora. Tente novamente em instantes.',
+          content: 'Desculpe, não consegui analisar o documento agora. Tente novamente em instantes.',
           timestamp: new Date()
         }]);
       } finally {
@@ -226,8 +229,36 @@ export function ChatAssistant() {
                               <img src={msg.data} alt="Prescription" className="w-full h-auto rounded-lg border border-white/20 shadow-sm" />
                               <p className="text-xs opacity-90">{msg.content}</p>
                             </div>
+                          ) : msg.type === 'file' && msg.data ? (
+                            <div className={`flex items-center gap-3 p-3 rounded-2xl min-w-[200px] border ${
+                              msg.role === 'user'
+                                ? 'bg-white/10 border-white/20 text-white'
+                                : 'bg-slate-50 border-slate-200/60 text-slate-800'
+                            }`}>
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                msg.role === 'user' ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
+                              }`}>
+                                <FileText className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold truncate">{msg.content}</p>
+                                <span className={`text-[8px] font-bold uppercase ${msg.role === 'user' ? 'opacity-60' : 'text-slate-400'}`}>Receita em PDF</span>
+                              </div>
+                              <a 
+                                href={msg.data} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+                                  msg.role === 'user' ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                <Maximize2 className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
                           ) : (
-                            msg.content
+                            <div className="markdown-content">
+                              <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            </div>
                           )}
                           <p className={`text-[9px] mt-2 font-bold opacity-50 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -276,7 +307,7 @@ export function ChatAssistant() {
                       ref={fileInputRef}
                       onChange={handleFileUpload}
                       className="hidden" 
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                     />
                     <button 
                       onClick={() => fileInputRef.current?.click()}

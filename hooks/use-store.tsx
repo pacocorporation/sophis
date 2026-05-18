@@ -31,7 +31,7 @@ export interface Message {
   senderId: string;
   text: string;
   timestamp: string;
-  type: 'text' | 'image' | 'audio';
+  type: 'text' | 'image' | 'audio' | 'file';
   data?: string;
 }
 
