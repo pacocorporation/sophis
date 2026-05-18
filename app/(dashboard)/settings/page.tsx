@@ -305,7 +305,7 @@ export default function SettingsPage() {
   const [pharmacyEmail, setPharmacyEmail] = useState(state.user?.pharmacyEmail || '');
   const [profileName, setProfileName] = useState(state.user?.name || '');
   const [profilePosition, setProfilePosition] = useState(state.user?.role || '');
-  const [profilePhone, setProfilePhone] = useState('');
+  const [profilePhone, setProfilePhone] = useState(state.user?.phone || '');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(state.user?.logo || null);
@@ -327,6 +327,7 @@ export default function SettingsPage() {
   if (state.user && !profileSynced) {
     if (state.user.name && !profileName) setProfileName(state.user.name);
     if (state.user.role && !profilePosition) setProfilePosition(state.user.role);
+    if (state.user.phone && !profilePhone) setProfilePhone(state.user.phone);
     if (!profileSynced) setProfileSynced(true);
   }
 
