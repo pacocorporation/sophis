@@ -355,22 +355,45 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    updateUser({
-      name: profileName,
-      logo: logoPreview || state.user?.logo,
-      image: userImagePreview || state.user?.image,
-      pharmacyEmail: pharmacyEmail,
-      webhookConfig: webhookConfig,
-      pedidoNovoWebhook: pedidoNovoWebhook
-    });
-    
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      // 1. Persist to Supabase team_members for the logged-in user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const updates: Record<string, any> = {
+          name: profileName,
+          role: profilePosition,
+        };
+        if (profilePhone) updates.phone = profilePhone;
+        if (userImagePreview) updates.image = userImagePreview;
+
+        const { error } = await supabase
+          .from('team_members')
+          .update(updates)
+          .eq('user_id', session.user.id);
+
+        if (error) throw error;
+      }
+
+      // 2. Update in-memory store so UI reflects immediately
+      updateUser({
+        name: profileName,
+        role: profilePosition,
+        logo: logoPreview || state.user?.logo,
+        image: userImagePreview || state.user?.image,
+        pharmacyEmail: pharmacyEmail,
+        webhookConfig: webhookConfig,
+        pedidoNovoWebhook: pedidoNovoWebhook
+      });
+
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    }, 1500);
+    } catch (err: any) {
+      alert('Erro ao salvar: ' + (err.message || 'Tente novamente.'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
