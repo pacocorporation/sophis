@@ -14,7 +14,9 @@ import {
   Bell,
   LogOut,
   ChevronRight,
-  Plus
+  Plus,
+  Menu,
+  X
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { StoreProvider, useStore } from '@/hooks/use-store';
@@ -27,6 +29,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { state, setUser } = useStore();
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleLogout = () => {
     setUser(null);
@@ -57,26 +60,39 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col z-30">
-        <div className="p-6 h-24 flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white font-bold text-xl skew-x-[-10deg] relative overflow-hidden">
-            {state.user?.logo ? (
-              <Image
-                src={state.user?.logo}
-                alt="Logo"
-                fill
-                className="object-cover skew-x-[10deg]"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              "N"
-            )}
+      <aside className={`w-72 bg-white border-r border-slate-200 flex flex-col z-50 fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out`}>
+        <div className="p-6 h-24 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white font-bold text-xl skew-x-[-10deg] relative overflow-hidden">
+              {state.user?.logo ? (
+                <Image
+                  src={state.user?.logo}
+                  alt="Logo"
+                  fill
+                  className="object-cover skew-x-[10deg]"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                "N"
+              )}
+            </div>
+            <span className="font-display text-xl font-bold tracking-tight">
+              Nanda<span className="text-brand-blue">Cloud</span>
+            </span>
           </div>
-          <span className="font-display text-xl font-bold tracking-tight">
-            Nanda<span className="text-brand-blue">Cloud</span>
-          </span>
+          <button className="md:hidden text-slate-400 hover:text-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
@@ -85,6 +101,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all group ${pathname === item.href
                   ? 'bg-brand-blue text-white shadow-xl shadow-blue-500/20'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-brand-blue'
@@ -115,18 +132,23 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative overflow-hidden">
+      <main className="flex-1 flex flex-col relative overflow-hidden w-full">
         {/* Header */}
-        <header className="h-24 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
-          <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl w-96 border border-slate-100">
-            <Search className="w-5 h-5 text-slate-400" />
-            <input type="text" placeholder="Busca global (leads, pedidos, produtos...)" className="bg-transparent border-0 focus:ring-0 text-sm font-medium w-full" />
+        <header className="h-24 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-20">
+          <div className="flex items-center gap-4">
+            <button className="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="hidden md:flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl w-96 border border-slate-100">
+              <Search className="w-5 h-5 text-slate-400" />
+              <input type="text" placeholder="Busca global (leads, pedidos, produtos...)" className="bg-transparent border-0 focus:ring-0 text-sm font-medium w-full" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 md:gap-6">
             <NotificationBell />
-            <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
-              <div className="text-right">
+            <div className="flex items-center gap-3 pl-3 md:pl-6 border-l border-slate-200">
+              <div className="hidden sm:block text-right">
                 <p className="text-sm font-bold text-slate-900">
                   {state.user?.name || <span className="text-slate-400">Carregando...</span>}
                 </p>
@@ -153,7 +175,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Viewport */}
-        <div className="flex-1 overflow-y-auto p-10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10">
           {children}
         </div>
 
