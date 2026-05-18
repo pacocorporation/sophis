@@ -22,6 +22,8 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  type?: 'text' | 'image';
+  data?: string;
 }
 
 export function ChatAssistant() {
@@ -46,12 +48,14 @@ export function ChatAssistant() {
     }
   }, [messages]);
 
-  const callNanda = async (prompt: string) => {
+  const callNanda = async (prompt: string, imageBase64?: string, imageMimeType?: string) => {
     const res = await fetch('/api/nanda', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
+        imageBase64,
+        imageMimeType,
         trainingExamples: state.trainingExamples,
         products: state.products.slice(0, 20),
       }),
@@ -68,16 +72,26 @@ export function ChatAssistant() {
 
     const reader = new FileReader();
     reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      const mimeType = file.type || 'image/jpeg';
+
       const userMessage: Message = {
         role: 'user',
-        content: 'Enviou uma receita médica para análise.',
-        timestamp: new Date()
+        content: `Enviou uma imagem para análise: ${file.name}`,
+        timestamp: new Date(),
+        type: 'image',
+        data: dataUrl
       };
       setMessages(prev => [...prev, userMessage]);
       setIsLoading(true);
 
       try {
-        const response = await callNanda("Analise esta receita médica. Identifique os medicamentos e dosagens.");
+        const response = await callNanda(
+          "Analise esta receita médica. Identifique os medicamentos, dosagens e instruções de uso. Verifique se temos esses itens no estoque e informe o preço.",
+          base64,
+          mimeType
+        );
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: response || "Recebi a imagem, mas tive dificuldade em ler os detalhes. Tente enviar uma foto mais nítida.",
@@ -207,7 +221,14 @@ export function ChatAssistant() {
                           ? 'bg-brand-blue text-white rounded-tr-none' 
                           : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
                         }`}>
-                          {msg.content}
+                          {msg.type === 'image' && msg.data ? (
+                            <div className="space-y-2 max-w-[200px]">
+                              <img src={msg.data} alt="Prescription" className="w-full h-auto rounded-lg border border-white/20 shadow-sm" />
+                              <p className="text-xs opacity-90">{msg.content}</p>
+                            </div>
+                          ) : (
+                            msg.content
+                          )}
                           <p className={`text-[9px] mt-2 font-bold opacity-50 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
