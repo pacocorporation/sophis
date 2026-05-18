@@ -1,5 +1,5 @@
 'use client';
-
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import {
@@ -29,7 +29,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { state, setUser } = useStore();
   const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     setUser(null);
