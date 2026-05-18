@@ -1,6 +1,21 @@
 import { supabase } from './supabase';
 import { Lead, Product, Task } from '@/hooks/use-store';
 
+function mapLeadToDb(lead: any) {
+  if (!lead) return lead;
+  const mapped: any = {};
+  if (lead.id !== undefined) mapped.id = lead.id;
+  if (lead.name !== undefined) mapped.name = lead.name;
+  if (lead.phone !== undefined) mapped.phone = lead.phone;
+  if (lead.email !== undefined) mapped.email = lead.email;
+  if (lead.status !== undefined) mapped.status = lead.status;
+  if (lead.tags !== undefined) mapped.tags = lead.tags;
+  if (lead.lastMessage !== undefined) mapped.last_message = lead.lastMessage;
+  if (lead.aiInsight !== undefined) mapped.ai_insight = lead.aiInsight;
+  if (lead.updatedAt !== undefined) mapped.updated_at = lead.updatedAt;
+  return mapped;
+}
+
 export const db = {
   leads: {
     async list() {
@@ -13,9 +28,10 @@ export const db = {
       return data;
     },
     async create(lead: any) {
+      const dbLead = mapLeadToDb(lead);
       const { data, error } = await supabase
         .from('leads')
-        .insert(lead)
+        .insert(dbLead)
         .select()
         .single();
       
@@ -23,9 +39,10 @@ export const db = {
       return data;
     },
     async update(id: string, updates: any) {
+      const dbUpdates = mapLeadToDb(updates);
       const { data, error } = await supabase
         .from('leads')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
