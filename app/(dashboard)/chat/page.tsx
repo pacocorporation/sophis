@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useStore, Message } from '@/hooks/use-store';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 
 const generateId = () => `${Date.now()}`;
 
@@ -233,14 +234,15 @@ export default function ChatPage() {
       const dataUrl = reader.result as string;
       const base64 = dataUrl.split(',')[1];
       const mimeType = file.type || 'image/jpeg';
+      const isPDF = mimeType === 'application/pdf';
 
-      // Add image message to UI immediately
+      // Add image or file message to UI immediately
       addMessage(activeChat.id, {
         id: generateId(),
         senderId: 'admin',
-        text: `📎 Receita: ${file.name}`,
+        text: file.name,
         timestamp: new Date().toISOString(),
-        type: 'image',
+        type: isPDF ? 'file' : 'image',
         data: dataUrl,
       });
 
@@ -399,16 +401,44 @@ export default function ChatPage() {
                      
                      {msg.type === 'audio' && msg.data ? (
                        <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
-                     ) : msg.type === 'image' && msg.data ? (
-                       <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
-                         <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
-                           <Maximize2 className="w-5 h-5" /> Ampliar
+                      ) : msg.type === 'image' && msg.data ? (
+                        <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
+                          <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
+                            <Maximize2 className="w-5 h-5" /> Ampliar
+                          </div>
+                        </div>
+                       ) : msg.type === 'file' && msg.data ? (
+                         <div className={`flex items-center gap-3 p-4 rounded-2xl min-w-[260px] border ${
+                           isMe || isAI 
+                             ? 'bg-white/10 border-white/20 text-white' 
+                             : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
+                         }`}>
+                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                             isMe || isAI ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
+                           }`}>
+                             <FileText className="w-5 h-5" />
+                           </div>
+                           <div className="min-w-0 flex-1">
+                             <p className="text-xs font-bold truncate">{msg.text}</p>
+                             <span className={`text-[9px] font-bold uppercase ${isMe || isAI ? 'opacity-60' : 'text-slate-400'}`}>Receita em PDF</span>
+                           </div>
+                           <a 
+                             href={msg.data} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className={`p-2 rounded-xl transition-colors shrink-0 ${
+                               isMe || isAI ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200 text-slate-600'
+                             }`}
+                           >
+                             <Maximize2 className="w-4 h-4" />
+                           </a>
                          </div>
-                       </div>
-                     ) : (
-                       <p className="text-sm font-medium leading-relaxed">{msg.text}</p>
-                     )}
+                       ) : (
+                         <div className="text-sm font-medium leading-relaxed markdown-content">
+                           <ReactMarkdown>{msg.text}</ReactMarkdown>
+                         </div>
+                       )}
 
                      <div className={`text-[10px] mt-2 flex items-center gap-1 uppercase font-bold ${isMe || isAI ? 'text-white/50' : 'text-slate-400'}`}>
                        {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
@@ -429,7 +459,7 @@ export default function ChatPage() {
           </div>
 
           <div className="p-6 border-t border-slate-50 flex items-center gap-4 bg-slate-50/50">
-             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePrescriptionUpload} />
+             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
              <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6"/></button>
              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6"/></button>
              <form onSubmit={handleSendMessage} className="flex-1 relative">
