@@ -23,7 +23,7 @@ export const db = {
         .from('leads')
         .select('*')
         .order('updated_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -34,7 +34,7 @@ export const db = {
         .insert(dbLead)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -46,7 +46,7 @@ export const db = {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -55,7 +55,7 @@ export const db = {
         .from('leads')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     }
   },
@@ -65,7 +65,7 @@ export const db = {
         .from('products')
         .select('*')
         .order('name');
-      
+
       if (error) throw error;
       return data.map((p: any) => ({
         ...p,
@@ -78,9 +78,9 @@ export const db = {
         .from('products')
         .delete()
         .not('id', 'is', null);
-        
+
       if (delError) throw delError;
-      
+
       // Se não houver produtos para inserir, finaliza
       if (!products || products.length === 0) return [];
 
@@ -88,7 +88,7 @@ export const db = {
       // é melhor fazer em lotes (batches) de 1000
       const batchSize = 1000;
       let inserted: any[] = [];
-      
+
       for (let i = 0; i < products.length; i += batchSize) {
         const batch = products.slice(i, i + batchSize).map(p => ({
           name: p.name,
@@ -96,16 +96,16 @@ export const db = {
           category: p.category || 'Geral',
           quantity: p.stock !== undefined ? p.stock : p.quantity
         }));
-        
+
         const { data, error } = await supabase
           .from('products')
           .insert(batch)
           .select();
-          
+
         if (error) throw error;
         if (data) inserted = [...inserted, ...data];
       }
-      
+
       return inserted;
     }
   },
@@ -115,7 +115,7 @@ export const db = {
         .from('team_members')
         .select('*')
         .order('created_at');
-      
+
       if (error) throw error;
       return data;
     },
@@ -125,7 +125,7 @@ export const db = {
         .insert(member)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -134,7 +134,7 @@ export const db = {
         .from('team_members')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     }
   },
@@ -144,7 +144,7 @@ export const db = {
         .from('flows')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -157,7 +157,7 @@ export const db = {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -171,7 +171,7 @@ export const db = {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -180,7 +180,7 @@ export const db = {
         .from('flows')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     }
   },
@@ -190,7 +190,7 @@ export const db = {
         .from('campaigns')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -200,7 +200,7 @@ export const db = {
         .insert(campaign)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -211,7 +211,7 @@ export const db = {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -220,7 +220,7 @@ export const db = {
         .from('campaigns')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     }
   }
