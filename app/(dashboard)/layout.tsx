@@ -73,18 +73,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       <aside className={`w-72 bg-white border-r border-slate-200 flex flex-col z-50 fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out`}>
         <div className="p-6 h-24 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white font-bold text-xl skew-x-[-10deg] relative overflow-hidden">
-              {state.user?.logo ? (
-                <Image
-                  src={state.user?.logo}
-                  alt="Logo"
-                  fill
-                  className="object-cover skew-x-[10deg]"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                "N"
-              )}
+            <div className="w-10 h-10 rounded-xl relative overflow-hidden flex-shrink-0">
+              <Image
+                src={state.user?.logo || '/logo_max.png'}
+                alt="Logo"
+                fill
+                className="object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <span className="font-display text-xl font-bold tracking-tight">
               Nanda<span className="text-brand-blue">Cloud</span>

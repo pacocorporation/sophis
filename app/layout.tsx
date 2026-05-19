@@ -10,6 +10,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: 'Sophis Cloud | O SaaS da sua Farmácia',
   description: 'CRM + Omnichannel + IA Nanda + Automação para farmácias.',
+  icons: {
+    icon: '/logo_max.png',
+    apple: '/logo_max.png',
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

@@ -7,11 +7,10 @@ import {
   User,
   Lock,
   ArrowRight,
-  Zap,
-  Github,
   Chrome
 } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -54,8 +53,13 @@ export default function LoginPage() {
       >
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 group">
-            <div className="w-12 h-12 bg-brand-blue rounded-xl flex items-center justify-center text-white font-bold text-2xl skew-x-[-10deg] group-hover:scale-110 transition-transform">
-              M
+            <div className="w-12 h-12 rounded-xl relative overflow-hidden group-hover:scale-110 transition-transform flex-shrink-0">
+              <Image
+                src="/logo_max.png"
+                alt="Drogaria Max"
+                fill
+                className="object-cover"
+              />
             </div>
             <span className="font-display text-2xl font-bold tracking-tight">
               Drogaria<span className="text-brand-red">Max</span>
@@ -91,6 +95,7 @@ export default function LoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Seu nome de usuário"
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-blue/20 transition-all font-medium"
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -111,12 +116,13 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-blue/20 transition-all font-medium"
+                  suppressHydrationWarning
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2 px-1">
-              <input type="checkbox" className="rounded-md border-slate-200 text-brand-blue focus:ring-brand-blue" />
+              <input type="checkbox" className="rounded-md border-slate-200 text-brand-blue focus:ring-brand-blue" suppressHydrationWarning />
               <span className="text-sm text-slate-500 font-medium">Lembrar acesso</span>
             </div>
 
