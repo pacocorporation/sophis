@@ -90,12 +90,17 @@ export const db = {
       let inserted: any[] = [];
 
       for (let i = 0; i < products.length; i += batchSize) {
-        const batch = products.slice(i, i + batchSize).map(p => ({
-          name: p.name,
-          price: p.price,
-          category: p.category || 'Geral',
-          quantity: p.stock !== undefined ? p.stock : p.quantity
-        }));
+        const batch = products.slice(i, i + batchSize).map(p => {
+          const name = String(p.name || '');
+          const slug = p.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || `produto-${Math.random().toString(36).substring(2, 9)}`;
+          return {
+            name: name,
+            slug: slug,
+            price: p.price,
+            category: p.category || 'Geral',
+            quantity: p.stock !== undefined ? p.stock : p.quantity
+          };
+        });
 
         const { data, error } = await supabase
           .from('products')
