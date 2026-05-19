@@ -116,7 +116,7 @@ export interface Campaign {
 }
 
 interface StoreState {
-  user: { name: string; email: string; company: string; role?: string; status?: string; pharmacyEmail?: string; image?: string; logo?: string; webhookConfig?: { endpoint: string; secret: string }; pedidoNovoWebhook?: { endpoint: string; secret: string }; connectedApps?: string[] } | null;
+  user: { name: string; email: string; company: string; role?: string; status?: string; pharmacyEmail?: string; image?: string; logo?: string; phone?: string; webhookConfig?: { endpoint: string; secret: string }; pedidoNovoWebhook?: { endpoint: string; secret: string }; connectedApps?: string[] } | null;
   leads: Lead[];
   products: Product[];
   tasks: Task[];
@@ -225,7 +225,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       pharmacyEmail: '',
       webhookConfig: { endpoint: '', secret: '' },
       pedidoNovoWebhook: { endpoint: '', secret: '' },
-      image: ''
+      image: '',
+      phone: ''
     },
     leads: [],
     products: [],
@@ -350,6 +351,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             status: member.status,
             company: member.role || prev.user?.company || '',
             image: member.image || prev.user?.image,
+            phone: member.phone || prev.user?.phone || '',
           }
         }));
       } else {
