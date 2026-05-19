@@ -67,7 +67,10 @@ export const db = {
         .order('name');
       
       if (error) throw error;
-      return data;
+      return data.map((p: any) => ({
+        ...p,
+        stock: p.quantity !== undefined ? p.quantity : p.stock
+      }));
     },
     async replaceAll(products: any[]) {
       // Deleta todos os registros existentes (usando um filtro que pega todos os IDs não nulos)
@@ -87,7 +90,13 @@ export const db = {
       let inserted: any[] = [];
       
       for (let i = 0; i < products.length; i += batchSize) {
-        const batch = products.slice(i, i + batchSize);
+        const batch = products.slice(i, i + batchSize).map(p => ({
+          name: p.name,
+          price: p.price,
+          category: p.category || 'Geral',
+          quantity: p.stock !== undefined ? p.stock : p.quantity
+        }));
+        
         const { data, error } = await supabase
           .from('products')
           .insert(batch)
