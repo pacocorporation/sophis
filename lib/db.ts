@@ -68,6 +68,36 @@ export const db = {
       
       if (error) throw error;
       return data;
+    },
+    async replaceAll(products: any[]) {
+      // Deleta todos os registros existentes (usando um filtro que pega todos os IDs não nulos)
+      const { error: delError } = await supabase
+        .from('products')
+        .delete()
+        .not('id', 'is', null);
+        
+      if (delError) throw delError;
+      
+      // Se não houver produtos para inserir, finaliza
+      if (!products || products.length === 0) return [];
+
+      // Como o Supabase tem limite de tamanho por request, para 5000+ linhas 
+      // é melhor fazer em lotes (batches) de 1000
+      const batchSize = 1000;
+      let inserted: any[] = [];
+      
+      for (let i = 0; i < products.length; i += batchSize) {
+        const batch = products.slice(i, i + batchSize);
+        const { data, error } = await supabase
+          .from('products')
+          .insert(batch)
+          .select();
+          
+        if (error) throw error;
+        if (data) inserted = [...inserted, ...data];
+      }
+      
+      return inserted;
     }
   },
   team: {
