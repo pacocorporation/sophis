@@ -25,6 +25,7 @@ import Image from 'next/image';
 
 import { ChatAssistant } from '@/components/chat-assistant';
 import { NotificationBell } from '@/components/notification-bell';
+import { Toaster } from 'sonner';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -209,6 +210,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         {/* Chat Assistant */}
         <ChatAssistant />
       </main>
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

@@ -29,6 +29,7 @@ import {
 import { useState } from 'react';
 import { useStore, Lead, Task } from '@/hooks/use-store';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { 
   FunnelChart, 
   Funnel, 
@@ -122,6 +123,7 @@ export default function CRMPage() {
     addTask(task);
     setNewTask({ title: '', description: '', dueDate: '', responsible: '' });
     setIsTaskModalOpen(false);
+    toast.success('Tarefa criada com sucesso!');
   };
 
   const handleEditLead = (e: React.FormEvent) => {
@@ -130,6 +132,7 @@ export default function CRMPage() {
       updateLead(selectedLead as Lead);
       setIsEditModalOpen(false);
       setSelectedLead(null);
+      toast.success('Lead atualizado com sucesso!');
     }
   };
 
@@ -148,6 +151,7 @@ export default function CRMPage() {
 
     setNewLead({ name: '', phone: '', email: '', status: 'new', tags: [] });
     setIsNewLeadModalOpen(false);
+    toast.success('Lead adicionado com sucesso!');
   };
 
   const handleDeleteLead = () => {
@@ -155,6 +159,7 @@ export default function CRMPage() {
       deleteLead(leadToDelete.id);
       setIsDeleteModalOpen(false);
       setLeadToDelete(null);
+      toast.success('Lead excluído com sucesso!');
     }
   };
 
