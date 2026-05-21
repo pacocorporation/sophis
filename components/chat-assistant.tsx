@@ -31,6 +31,11 @@ interface Message {
 export function ChatAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+const [isDragging, setIsDragging] = useState(false);
+const startXRef = useRef(0);
+const startYRef = useRef(0);
+const startPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -42,7 +47,14 @@ export function ChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+const dragRef = useRef<HTMLDivElement>(null);
   const { state } = useStore();
+
+useEffect(() => {
+  const initX = window.innerWidth - 80;
+  const initY = window.innerHeight - 80;
+  setPos({ x: initX, y: initY });
+}, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -154,8 +166,47 @@ export function ChatAssistant() {
     }
   };
 
+const handleMouseDown = (e: React.MouseEvent) => {
+  e.preventDefault();
+  setIsDragging(true);
+  startXRef.current = e.clientX;
+  startYRef.current = e.clientY;
+  startPosRef.current = { ...pos };
+};
+
+useEffect(() => {
+  const onMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startXRef.current;
+    const dy = e.clientY - startYRef.current;
+    setPos({ x: startPosRef.current.x + dx, y: startPosRef.current.y + dy });
+  };
+  const onMouseUp = () => {
+    setIsDragging(false);
+  };
+  if (isDragging) {
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+  return () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+}, [isDragging]);
+
   return (
-    <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end">
+    <div
+  ref={dragRef}
+  onMouseDown={handleMouseDown}
+  style={{
+    position: 'fixed',
+    left: pos.x,
+    top: pos.y,
+    zIndex: 100,
+    cursor: isDragging ? 'grabbing' : 'grab'
+  }}
+  className="flex flex-col items-end"
+>
       <AnimatePresence>
         {isOpen && (
           <motion.div

@@ -98,12 +98,19 @@ export default function ChatPage() {
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const types = ['audio/webm', 'audio/mp4', 'audio/ogg'];
+      let options: MediaRecorderOptions = {};
+      for (const type of types) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          options = { mimeType: type };
+          break;
+        }
+      }
+      const recorder = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
       recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const blob = new Blob(audioChunksRef.current, { type: options.mimeType || 'audio/mp4' });
         const url = URL.createObjectURL(blob);
         setAudioBlob(blob);
         setAudioUrl(url);
@@ -112,9 +119,15 @@ export default function ChatPage() {
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
-    } catch (err) {
-      console.error('[audio] mic error:', err);
-      alert('Erro ao acessar o microfone.');
+    } catch (err: any) {
+      console.log('[audio] mic error:', err.message || err.name);
+      if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        alert('Nenhum microfone encontrado neste dispositivo.');
+      } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        alert('Permissão para acessar o microfone foi negada.');
+      } else {
+        alert('Erro ao acessar o microfone.');
+      }
     }
   };
 
@@ -465,15 +478,41 @@ export default function ChatPage() {
 
           <div className="p-3 md:p-6 border-t border-slate-50 flex items-center gap-2 md:gap-4 bg-slate-50/50 safe-area-bottom">
             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
-            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6" /></button>
-            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6" /></button>
-            <form onSubmit={handleSendMessage} className="flex-1 relative">
-              <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
-              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4" /></button>
-            </form>
-            <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-brand-blue hover:text-white'}`}>
-              {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-6 h-6" />}
-            </button>
+            
+            {!(isRecording || audioUrl) && (
+              <>
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6" /></button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6" /></button>
+              </>
+            )}
+
+            {audioUrl ? (
+              <div className="flex-1 flex items-center gap-2 md:gap-4 bg-white border border-slate-100 rounded-full px-2 py-1 shadow-sm">
+                <button type="button" onClick={handleCancelRecording} className="w-10 h-10 flex items-center justify-center shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>
+                <audio src={audioUrl} controls className="flex-1 h-10 min-w-0" />
+                <button type="button" onClick={handleSendAudio} className="w-10 h-10 shrink-0 bg-brand-blue text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"><Send className="w-4 h-4 ml-1" /></button>
+              </div>
+            ) : isRecording ? (
+              <div className="flex-1 flex items-center justify-between bg-red-50/50 border border-red-100 rounded-full px-6 py-2 shadow-sm">
+                <button type="button" onClick={handleCancelRecording} className="text-slate-400 hover:text-red-500 transition-colors p-2"><Trash2 className="w-5 h-5" /></button>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-red-500 font-bold text-sm">{formatRecordingTime(recordingSeconds)}</span>
+                </div>
+                <div className="w-9" /> {/* Spacer para centralizar o timer visualmente */}
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage} className="flex-1 relative">
+                <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4 ml-1" /></button>
+              </form>
+            )}
+            
+            {!audioUrl && (
+              <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-brand-blue text-white hover:bg-blue-600 shadow-md'}`}>
+                {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-5 h-5" />}
+              </button>
+            )}
           </div>
         </div>
       ) : (
