@@ -2,17 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Search, 
-  MoreVertical, 
-  Paperclip, 
-  Send, 
-  CheckCheck, 
-  Smile, 
+import {
+  Search,
+  MoreVertical,
+  Paperclip,
+  Send,
+  CheckCheck,
+  Smile,
   Mic,
   Square,
   Trash2,
-  Phone, 
+  Phone,
   Video,
   Bot,
   User,
@@ -23,7 +23,8 @@ import {
   ShieldAlert,
   Inbox,
   X,
-  Maximize2
+  Maximize2,
+  ChevronLeft
 } from 'lucide-react';
 import { useStore, Message } from '@/hooks/use-store';
 import Image from 'next/image';
@@ -59,10 +60,10 @@ export default function ChatPage() {
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const EMOJI_CATEGORIES = [
-    { label: '😊 Rostos', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿'] },
-    { label: '👋 Gestos', emojis: ['👍','👎','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👋','🤚','🖐️','✋','🖖','👏','🙌','🤲','🤜','🤛','✊','👊','🤚','🙏','✍️','💅','🤳','💪','🦵','🦶','👃','👂','🦻'] },
-    { label: '❤️ Símbolos', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☯️','✡️','🔯','🕎','☸️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🔕'] },
-    { label: '🌿 Natureza', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🌱','🌿','☘️','🍀','🌸','🌺','🌻','🌹','🥀','🌷','🌳','🌴','🌵','🍁','🍂','🍃','🍄','🌾','💐','🌊','🌈','⛅','🔥','🌟','⭐','✨','💫','🌙','🌞','🌝','🌛','🌜','🌚'] },
+    { label: '😊 Rostos', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '☺️', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿'] },
+    { label: '👋 Gestos', emojis: ['👍', '👎', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👋', '🤚', '🖐️', '✋', '🖖', '👏', '🙌', '🤲', '🤜', '🤛', '✊', '👊', '🤚', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👃', '👂', '🦻'] },
+    { label: '❤️ Símbolos', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☯️', '✡️', '🔯', '🕎', '☸️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🔕'] },
+    { label: '🌿 Natureza', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🌱', '🌿', '☘️', '🍀', '🌸', '🌺', '🌻', '🌹', '🥀', '🌷', '🌳', '🌴', '🌵', '🍁', '🍂', '🍃', '🍄', '🌾', '💐', '🌊', '🌈', '⛅', '🔥', '🌟', '⭐', '✨', '💫', '🌙', '🌞', '🌝', '🌛', '🌜', '🌚'] },
   ];
 
   useEffect(() => {
@@ -159,7 +160,8 @@ export default function ChatPage() {
   }, []);
 
   const filteredChats = state.chats.filter(c => c.status === currentView);
-  const activeChat = state.chats.find(c => c.id === activeChatId) || (filteredChats.length > 0 ? filteredChats[0] : null);
+  // Do NOT auto-select first chat — this breaks mobile show/hide panel logic
+  const activeChat = activeChatId ? state.chats.find(c => c.id === activeChatId) ?? null : null;
   const activeClient = state.leads.find(l => l.id === activeChat?.clientId);
 
   // Find the last image in the conversation
@@ -317,17 +319,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5">
+    <div className="flex h-[calc(100dvh-8rem)] md:h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5">
       {/* ImageViewer Modal */}
       <AnimatePresence>
         {viewingImage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-900/90 backdrop-blur-md"
             onClick={() => setViewingImage(null)}
           >
-            <button className="absolute top-8 right-8 text-white hover:scale-110 transition-transform"><X className="w-10 h-10"/></button>
-            <motion.div 
+            <button className="absolute top-8 right-8 text-white hover:scale-110 transition-transform"><X className="w-10 h-10" /></button>
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="relative w-full h-full max-w-5xl max-h-screen flex items-center justify-center"
               onClick={e => e.stopPropagation()}
@@ -339,7 +341,7 @@ export default function ChatPage() {
       </AnimatePresence>
 
       {/* Chats List */}
-      <div className="w-96 border-r border-slate-100 flex flex-col bg-slate-50/30">
+      <div className={`${activeChatId ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-slate-100 flex-col bg-slate-50/30 shrink-0 min-h-0`}>
         <div className="p-6">
           <h2 className="text-xl font-bold mb-6 italic">Caixa de Entrada</h2>
           <div className="flex gap-2 mb-6">
@@ -375,100 +377,103 @@ export default function ChatPage() {
       </div>
 
       {activeChat ? (
-        <div className="flex-1 flex flex-col bg-white">
-          <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
+        <div className={`${activeChatId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white w-full max-w-full overflow-hidden min-h-0`}>
+          <div className="p-4 md:p-6 border-b border-slate-50 flex items-center justify-between">
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                onClick={() => setActiveChatId(null)}
+                className="md:hidden w-10 h-10 flex shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-2xl bg-slate-100 relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
               <div>
                 <p className="font-bold text-slate-900">{activeClient?.name}</p>
                 <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-xs font-bold text-slate-400 uppercase">Online</p></div>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Phone className="w-5 h-5"/></button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Video className="w-5 h-5"/></button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Phone className="w-5 h-5" /></button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Video className="w-5 h-5" /></button>
             </div>
           </div>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed opacity-90">
-             {activeChat.messages.map((msg) => {
-               const isMe = msg.senderId === 'admin';
-               const isAI = msg.senderId === 'nanda';
-               return (
-                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                   <div className={`max-w-[70%] p-4 rounded-3xl relative ${isMe ? 'bg-brand-blue text-white rounded-tr-none' : isAI ? 'bg-slate-900 text-white rounded-tl-none border-t-2 border-blue-400' : 'bg-slate-100'}`}>
-                     {isAI && <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-[10px] uppercase"><Bot className="w-3 h-3" /> Nanda AI</div>}
-                     
-                     {msg.type === 'audio' && msg.data ? (
-                       <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
-                      ) : msg.type === 'image' && msg.data ? (
-                        <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
-                          <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
-                            <Maximize2 className="w-5 h-5" /> Ampliar
-                          </div>
-                        </div>
-                       ) : msg.type === 'file' && msg.data ? (
-                         <div className={`flex items-center gap-3 p-4 rounded-2xl min-w-[260px] border ${
-                           isMe || isAI 
-                             ? 'bg-white/10 border-white/20 text-white' 
-                             : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
-                         }`}>
-                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                             isMe || isAI ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
-                           }`}>
-                             <FileText className="w-5 h-5" />
-                           </div>
-                           <div className="min-w-0 flex-1">
-                             <p className="text-xs font-bold truncate">{msg.text}</p>
-                             <span className={`text-[9px] font-bold uppercase ${isMe || isAI ? 'opacity-60' : 'text-slate-400'}`}>Receita em PDF</span>
-                           </div>
-                           <a 
-                             href={msg.data} 
-                             target="_blank" 
-                             rel="noopener noreferrer"
-                             className={`p-2 rounded-xl transition-colors shrink-0 ${
-                               isMe || isAI ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200 text-slate-600'
-                             }`}
-                           >
-                             <Maximize2 className="w-4 h-4" />
-                           </a>
-                         </div>
-                       ) : (
-                         <div className="text-sm font-medium leading-relaxed markdown-content">
-                           <ReactMarkdown>{msg.text}</ReactMarkdown>
-                         </div>
-                       )}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed opacity-90 min-h-0">
+            {activeChat.messages.map((msg) => {
+              const isMe = msg.senderId === 'admin';
+              const isAI = msg.senderId === 'nanda';
+              return (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[70%] p-4 rounded-3xl relative ${isMe ? 'bg-brand-blue text-white rounded-tr-none' : isAI ? 'bg-slate-900 text-white rounded-tl-none border-t-2 border-blue-400' : 'bg-slate-100'}`}>
+                    {isAI && <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-[10px] uppercase"><Bot className="w-3 h-3" /> Nanda AI</div>}
 
-                     <div className={`text-[10px] mt-2 flex items-center gap-1 uppercase font-bold ${isMe || isAI ? 'text-white/50' : 'text-slate-400'}`}>
-                       {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                       {isMe && <CheckCheck className="w-3 h-3" />}
-                     </div>
-                   </div>
-                 </motion.div>
-               )
-             })}
-             {isNandaThinking && (
-               <div className="flex justify-start">
-                 <div className="bg-slate-900 text-blue-300 p-4 rounded-3xl rounded-tl-none flex items-center gap-2 animate-pulse">
-                   <Bot className="w-4 h-4" />
-                   <p className="text-xs font-bold uppercase tracking-widest">Nanda está analisando...</p>
-                 </div>
-               </div>
-             )}
+                    {msg.type === 'audio' && msg.data ? (
+                      <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
+                    ) : msg.type === 'image' && msg.data ? (
+                      <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
+                        <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
+                          <Maximize2 className="w-5 h-5" /> Ampliar
+                        </div>
+                      </div>
+                    ) : msg.type === 'file' && msg.data ? (
+                      <div className={`flex items-center gap-3 p-4 rounded-2xl min-w-[260px] border ${isMe || isAI
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isMe || isAI ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
+                          }`}>
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold truncate">{msg.text}</p>
+                          <span className={`text-[9px] font-bold uppercase ${isMe || isAI ? 'opacity-60' : 'text-slate-400'}`}>Receita em PDF</span>
+                        </div>
+                        <a
+                          href={msg.data}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`p-2 rounded-xl transition-colors shrink-0 ${isMe || isAI ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200 text-slate-600'
+                            }`}
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="text-sm font-medium leading-relaxed markdown-content">
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      </div>
+                    )}
+
+                    <div className={`text-[10px] mt-2 flex items-center gap-1 uppercase font-bold ${isMe || isAI ? 'text-white/50' : 'text-slate-400'}`}>
+                      {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                      {isMe && <CheckCheck className="w-3 h-3" />}
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+            {isNandaThinking && (
+              <div className="flex justify-start">
+                <div className="bg-slate-900 text-blue-300 p-4 rounded-3xl rounded-tl-none flex items-center gap-2 animate-pulse">
+                  <Bot className="w-4 h-4" />
+                  <p className="text-xs font-bold uppercase tracking-widest">Nanda está analisando...</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="p-6 border-t border-slate-50 flex items-center gap-4 bg-slate-50/50">
-             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
-             <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6"/></button>
-             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6"/></button>
-             <form onSubmit={handleSendMessage} className="flex-1 relative">
-               <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
-               <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4" /></button>
-             </form>
-             <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-brand-blue hover:text-white'}`}>
-               {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-6 h-6" />}
-             </button>
+          <div className="p-3 md:p-6 border-t border-slate-50 flex items-center gap-2 md:gap-4 bg-slate-50/50 safe-area-bottom">
+            <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
+            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6" /></button>
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6" /></button>
+            <form onSubmit={handleSendMessage} className="flex-1 relative">
+              <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4" /></button>
+            </form>
+            <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-brand-blue hover:text-white'}`}>
+              {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-6 h-6" />}
+            </button>
           </div>
         </div>
       ) : (
@@ -479,7 +484,7 @@ export default function ChatPage() {
       )}
 
       {activeChat && (
-        <div className="w-80 border-l border-slate-50 flex flex-col bg-slate-50/30">
+        <div className="hidden lg:flex w-80 border-l border-slate-50 flex-col bg-slate-50/30 shrink-0">
           <div className="p-8 text-center bg-white border-b border-slate-50 mb-6">
             <div className="w-24 h-24 rounded-[32px] mx-auto mb-4 border-4 border-slate-50 overflow-hidden relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
             <h3 className="font-bold text-lg text-slate-900">{activeClient?.name}</h3>
@@ -490,16 +495,16 @@ export default function ChatPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase pl-2">Ações Rápidas</p>
               <div className="grid grid-cols-2 gap-3">
                 <button className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:bg-brand-blue hover:text-white transition-all">
-                   <ShoppingBag className="w-5 h-5" />
-                   <span className="text-[10px] font-bold">Novo Pedido</span>
+                  <ShoppingBag className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Novo Pedido</span>
                 </button>
-                <button 
+                <button
                   onClick={() => lastPrescription?.data && setViewingImage(lastPrescription.data)}
                   disabled={!lastPrescription}
                   className={`flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl transition-all ${lastPrescription ? 'hover:bg-brand-red hover:text-white cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}
                 >
-                   <FileText className={`w-5 h-5 ${lastPrescription ? 'text-brand-red group-hover:text-white' : 'text-slate-300'}`} />
-                   <span className="text-[10px] font-bold">{lastPrescription ? 'Ver Receita' : 'Sem Receita'}</span>
+                  <FileText className={`w-5 h-5 ${lastPrescription ? 'text-brand-red group-hover:text-white' : 'text-slate-300'}`} />
+                  <span className="text-[10px] font-bold">{lastPrescription ? 'Ver Receita' : 'Sem Receita'}</span>
                 </button>
               </div>
             </div>
@@ -517,3 +522,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
