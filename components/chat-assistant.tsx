@@ -222,14 +222,11 @@ useEffect(() => {
   return (
     <div
   ref={dragRef}
-  onMouseDown={handleMouseDown}
-  onTouchStart={handleTouchStart}
   style={{
     position: 'fixed',
     left: pos.x,
     top: pos.y,
     zIndex: 100,
-    cursor: isDragging ? 'grabbing' : 'grab'
   }}
   className="flex flex-col items-end"
 >
@@ -247,7 +244,11 @@ useEffect(() => {
             className="w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col mb-4 origin-bottom-right"
           >
             {/* Header */}
-            <header className="p-4 bg-brand-blue text-white flex items-center justify-between shrink-0">
+            <header 
+              className="p-4 bg-brand-blue text-white flex items-center justify-between shrink-0 cursor-grab active:cursor-grabbing"
+              onMouseDown={handleMouseDown}
+              onTouchStart={handleTouchStart}
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
                   <Bot className="w-6 h-6" />
@@ -417,11 +418,13 @@ useEffect(() => {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         onClick={() => {
           if (hasDraggedRef.current) return;
           setIsOpen(!isOpen);
         }}
-        className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all ${
+        className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all cursor-grab active:cursor-grabbing ${
           isOpen ? 'bg-white text-slate-800' : 'bg-brand-blue text-white'
         }`}
       >
