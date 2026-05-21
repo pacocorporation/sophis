@@ -33,6 +33,7 @@ export interface Message {
   timestamp: string;
   type: 'text' | 'image' | 'audio' | 'file';
   data?: string;
+  replyToId?: string;
 }
 
 export interface ChatSession {
@@ -197,6 +198,7 @@ interface StoreContextType {
   addTask: (task: Task) => void;
   updateRole: (role: Role) => void;
   addMessage: (chatId: string, message: Message) => void;
+  deleteMessage: (chatId: string, messageId: string) => void;
   setUser: (user: any) => void;
   updateUser: (updates: Partial<StoreState['user']>) => void;
   setProducts: (products: Product[]) => void;
@@ -594,6 +596,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const deleteMessage = (chatId: string, messageId: string) => {
+    setState(prev => ({
+      ...prev,
+      chats: prev.chats.map(c => c.id === chatId ? {
+        ...c,
+        messages: c.messages.filter(m => m.id !== messageId),
+        updatedAt: new Date().toISOString()
+      } : c)
+    }));
+  };
+
   const setUser = (user: any) => setState(prev => ({ ...prev, user }));
 
   const updateUser = (updates: any) => {
@@ -787,6 +800,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addTask, 
       updateRole, 
       addMessage, 
+      deleteMessage,
       setUser, 
       updateUser, 
       setProducts, 

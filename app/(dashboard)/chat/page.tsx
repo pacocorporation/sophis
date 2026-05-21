@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -24,7 +24,11 @@ import {
   Inbox,
   X,
   Maximize2,
-  ChevronLeft
+  ChevronLeft,
+  Reply,
+  Copy,
+  Forward,
+  CornerUpLeft
 } from 'lucide-react';
 import { useStore, Message } from '@/hooks/use-store';
 import Image from 'next/image';
@@ -32,8 +36,10 @@ import ReactMarkdown from 'react-markdown';
 
 const generateId = () => `${Date.now()}`;
 
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
 export default function ChatPage() {
-  const { state, addMessage, updateLeadStatus } = useStore();
+  const { state, addMessage, deleteMessage, updateLeadStatus } = useStore();
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isNandaThinking, setIsNandaThinking] = useState(false);
@@ -45,6 +51,14 @@ export default function ChatPage() {
   const [emojiCategory, setEmojiCategory] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+  // WhatsApp-style interactions
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ msgId: string; x: number; y: number } | null>(null);
+  const [copiedToast, setCopiedToast] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, string>>({});
+  const [showReactions, setShowReactions] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Audio recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -167,10 +181,47 @@ export default function ChatPage() {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
         setShowEmojiPicker(false);
       }
+      setContextMenu(null);
+      setShowReactions(null);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // WhatsApp-style handlers
+  const handleContextMenu = (e: React.MouseEvent | React.TouchEvent, msgId: string) => {
+    e.preventDefault();
+    const x = 'clientX' in e ? e.clientX : e.touches[0].clientX;
+    const y = 'clientY' in e ? e.clientY : e.touches[0].clientY;
+    setContextMenu({ msgId, x, y });
+    setShowReactions(null);
+  };
+
+  const handleReply = (msg: Message) => {
+    setReplyingTo(msg);
+    setContextMenu(null);
+    inputRef.current?.focus();
+  };
+
+  const handleCopyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setContextMenu(null);
+    setCopiedToast(true);
+    setTimeout(() => setCopiedToast(false), 2000);
+  };
+
+  const handleDeleteMsg = (msgId: string) => {
+    if (activeChat?.id) {
+      deleteMessage(activeChat.id, msgId);
+    }
+    setContextMenu(null);
+  };
+
+  const handleReaction = (msgId: string, emoji: string) => {
+    setReactions(prev => ({ ...prev, [msgId]: prev[msgId] === emoji ? '' : emoji }));
+    setShowReactions(null);
+    setContextMenu(null);
+  };
 
   const filteredChats = state.chats.filter(c => c.status === currentView);
   // Do NOT auto-select first chat — this breaks mobile show/hide panel logic
@@ -197,15 +248,18 @@ export default function ChatPage() {
       senderId: 'admin',
       text: inputText,
       timestamp: new Date().toISOString(),
-      type: 'text'
+      type: 'text',
+      replyToId: replyingTo?.id,
     };
 
     addMessage(targetChatId, userMessage);
     const promptToTrigger = inputText;
     setInputText('');
+    setReplyingTo(null);
 
-    // Trigger Nanda immediately for every message
-    await handleNandaTrigger(promptToTrigger, targetChatId);
+    if (promptToTrigger.toLowerCase().includes('nanda') || promptToTrigger.length > 5) {
+      await handleNandaTrigger(promptToTrigger, targetChatId);
+    }
   };
 
   const handleNandaTrigger = async (userPrompt: string, targetChatId: string) => {
@@ -430,8 +484,8 @@ export default function ChatPage() {
                       </div>
                     ) : msg.type === 'file' && msg.data ? (
                       <div className={`flex items-center gap-3 p-4 rounded-2xl min-w-[260px] border ${isMe || isAI
-                        ? 'bg-white/10 border-white/20 text-white'
-                        : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
                         }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isMe || isAI ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
                           }`}>
@@ -477,7 +531,7 @@ export default function ChatPage() {
 
           <div className="p-3 md:p-6 border-t border-slate-50 flex items-center gap-2 md:gap-4 bg-slate-50/50 safe-area-bottom">
             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
-
+            
             {!(isRecording || audioUrl) && (
               <>
                 <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6" /></button>
@@ -506,7 +560,7 @@ export default function ChatPage() {
                 <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4 ml-1" /></button>
               </form>
             )}
-
+            
             {!audioUrl && (
               <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-brand-blue text-white hover:bg-blue-600 shadow-md'}`}>
                 {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-5 h-5" />}

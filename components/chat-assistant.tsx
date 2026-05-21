@@ -36,7 +36,6 @@ const [isDragging, setIsDragging] = useState(false);
 const startXRef = useRef(0);
 const startYRef = useRef(0);
 const startPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-const hasDraggedRef = useRef(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -170,17 +169,8 @@ useEffect(() => {
 const handleMouseDown = (e: React.MouseEvent) => {
   e.preventDefault();
   setIsDragging(true);
-  hasDraggedRef.current = false;
   startXRef.current = e.clientX;
   startYRef.current = e.clientY;
-  startPosRef.current = { ...pos };
-};
-
-const handleTouchStart = (e: React.TouchEvent) => {
-  setIsDragging(true);
-  hasDraggedRef.current = false;
-  startXRef.current = e.touches[0].clientX;
-  startYRef.current = e.touches[0].clientY;
   startPosRef.current = { ...pos };
 };
 
@@ -189,44 +179,31 @@ useEffect(() => {
     if (!isDragging) return;
     const dx = e.clientX - startXRef.current;
     const dy = e.clientY - startYRef.current;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDraggedRef.current = true;
     setPos({ x: startPosRef.current.x + dx, y: startPosRef.current.y + dy });
   };
-  
-  const onTouchMove = (e: TouchEvent) => {
-    if (!isDragging) return;
-    e.preventDefault(); // Prevent scrolling while dragging
-    const dx = e.touches[0].clientX - startXRef.current;
-    const dy = e.touches[0].clientY - startYRef.current;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDraggedRef.current = true;
-    setPos({ x: startPosRef.current.x + dx, y: startPosRef.current.y + dy });
+  const onMouseUp = () => {
+    setIsDragging(false);
   };
-
-  const onMouseUp = () => setIsDragging(false);
-  const onTouchEnd = () => setIsDragging(false);
-
   if (isDragging) {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
   }
   return () => {
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
   };
 }, [isDragging]);
 
   return (
     <div
   ref={dragRef}
+  onMouseDown={handleMouseDown}
   style={{
     position: 'fixed',
     left: pos.x,
     top: pos.y,
     zIndex: 100,
+    cursor: isDragging ? 'grabbing' : 'grab'
   }}
   className="flex flex-col items-end"
 >
@@ -244,11 +221,7 @@ useEffect(() => {
             className="w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col mb-4 origin-bottom-right"
           >
             {/* Header */}
-            <header 
-              className="p-4 bg-brand-blue text-white flex items-center justify-between shrink-0 cursor-grab active:cursor-grabbing"
-              onMouseDown={handleMouseDown}
-              onTouchStart={handleTouchStart}
-            >
+            <header className="p-4 bg-brand-blue text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
                   <Bot className="w-6 h-6" />
@@ -418,13 +391,8 @@ useEffect(() => {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        onClick={() => {
-          if (hasDraggedRef.current) return;
-          setIsOpen(!isOpen);
-        }}
-        className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all cursor-grab active:cursor-grabbing ${
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all ${
           isOpen ? 'bg-white text-slate-800' : 'bg-brand-blue text-white'
         }`}
       >
