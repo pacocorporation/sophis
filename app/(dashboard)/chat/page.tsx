@@ -385,7 +385,19 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] md:h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5">
+    <div className="flex h-[calc(100dvh-8rem)] md:h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5 relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {copiedToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className="fixed bottom-24 left-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl z-[200] flex items-center gap-2"
+          >
+            <CheckCheck className="w-4 h-4 text-green-400" />
+            Mensagem copiada
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* ImageViewer Modal */}
       <AnimatePresence>
         {viewingImage && (
@@ -444,7 +456,7 @@ export default function ChatPage() {
 
       {activeChat ? (
         <div className={`${activeChatId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white w-full max-w-full overflow-hidden min-h-0`}>
-          <div className="p-4 md:p-6 border-b border-slate-50 flex items-center justify-between">
+          <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white z-10 shadow-sm">
             <div className="flex items-center gap-3 md:gap-4">
               <button
                 onClick={() => setActiveChatId(null)}
@@ -452,15 +464,20 @@ export default function ChatPage() {
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-2xl bg-slate-100 relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-blue-100 flex items-center justify-center relative overflow-hidden">
+                <User className="w-6 h-6 text-blue-500" />
+              </div>
               <div>
-                <p className="font-bold text-slate-900">{activeClient?.name}</p>
-                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-xs font-bold text-slate-400 uppercase">Online</p></div>
+                <p className="font-bold text-slate-800">{activeClient?.name}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 bg-[#25D366] rounded-full" />
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Online</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Phone className="w-5 h-5" /></button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Video className="w-5 h-5" /></button>
+            <div className="flex items-center gap-3">
+              <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 transition-colors"><Phone className="w-4 h-4" /></button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 transition-colors"><Video className="w-5 h-5" /></button>
             </div>
           </div>
 
@@ -470,8 +487,18 @@ export default function ChatPage() {
               const isAI = msg.senderId === 'nanda';
               return (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[70%] p-4 rounded-3xl relative ${isMe ? 'bg-brand-blue text-white rounded-tr-none' : isAI ? 'bg-slate-900 text-white rounded-tl-none border-t-2 border-blue-400' : 'bg-slate-100'}`}>
+                  <div
+                    onContextMenu={(e) => handleContextMenu(e, msg.id)}
+                    className={`max-w-[75%] p-4 relative shadow-sm ${isMe ? 'bg-[#0066FF] text-white rounded-2xl rounded-tr-sm' : isAI ? 'bg-slate-800 text-white rounded-2xl rounded-tl-sm border-t-2 border-blue-400' : 'bg-[#F0F4F8] text-slate-700 rounded-2xl rounded-tl-sm'}`}
+                  >
                     {isAI && <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-[10px] uppercase"><Bot className="w-3 h-3" /> Nanda AI</div>}
+
+                    {msg.replyToId && (
+                      <div className={`mb-2 p-2 rounded-xl text-xs border-l-4 ${isMe ? 'bg-white/10 border-white/50 text-white/90' : 'bg-black/5 border-slate-400 text-slate-600'}`}>
+                        <div className="font-bold mb-1">{activeChat.messages.find(m => m.id === msg.replyToId)?.senderId === 'admin' ? 'Você' : activeClient?.name}</div>
+                        <div className="truncate opacity-80">{activeChat.messages.find(m => m.id === msg.replyToId)?.text || 'Mensagem...'}</div>
+                      </div>
+                    )}
 
                     {msg.type === 'audio' && msg.data ? (
                       <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
@@ -511,10 +538,16 @@ export default function ChatPage() {
                       </div>
                     )}
 
-                    <div className={`text-[10px] mt-2 flex items-center gap-1 uppercase font-bold ${isMe || isAI ? 'text-white/50' : 'text-slate-400'}`}>
+                    <div className={`text-[10px] mt-2 flex items-center justify-end gap-1 font-bold ${isMe || isAI ? 'text-white/70' : 'text-slate-400'}`}>
                       {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                      {isMe && <CheckCheck className="w-3 h-3" />}
+                      {isMe && <CheckCheck className="w-3 h-3 text-white/90" />}
                     </div>
+
+                    {reactions[msg.id] && (
+                      <div className={`absolute -bottom-3 ${isMe ? 'right-2' : 'left-2'} bg-white border border-slate-100 rounded-full px-2 py-0.5 text-xs shadow-sm z-10`}>
+                        {reactions[msg.id]}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )
@@ -527,23 +560,101 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
+            
+            {contextMenu && (
+              <div
+                className="fixed z-50 bg-white rounded-2xl shadow-xl py-2 w-56 border border-slate-100"
+                style={{ top: Math.min(contextMenu.y, window.innerHeight - 200), left: Math.min(contextMenu.x, window.innerWidth - 250) }}
+              >
+                <div className="flex items-center justify-between px-4 pb-2 border-b border-slate-50 mb-2">
+                  {QUICK_REACTIONS.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={(e) => { e.stopPropagation(); handleReaction(contextMenu.msgId, emoji); }}
+                      className="hover:scale-125 transition-transform text-lg"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    const msg = activeChat.messages.find(m => m.id === contextMenu.msgId);
+                    if (msg) handleReply(msg);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <Reply className="w-4 h-4" /> Responder
+                </button>
+                <button
+                  onClick={() => {
+                    const msg = activeChat.messages.find(m => m.id === contextMenu.msgId);
+                    if (msg) handleCopyText(msg.text);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <Copy className="w-4 h-4" /> Copiar
+                </button>
+                <button
+                  onClick={() => handleDeleteMsg(contextMenu.msgId)}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" /> Apagar
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="p-3 md:p-6 border-t border-slate-50 flex items-center gap-2 md:gap-4 bg-slate-50/50 safe-area-bottom">
+          <div className="p-3 md:p-6 flex items-center gap-3 bg-white border-t border-slate-100 safe-area-bottom relative">
+            
+            {replyingTo && (
+              <div className="absolute bottom-full left-0 right-0 p-3 bg-slate-50 border-t border-slate-100">
+                <div className="bg-white rounded-xl p-3 border-l-4 border-[#0066FF] flex items-center justify-between shadow-sm">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#0066FF] mb-1">{replyingTo.senderId === 'admin' ? 'Você' : activeClient?.name}</p>
+                    <p className="text-xs text-slate-600 truncate">{replyingTo.type === 'image' ? '📷 Imagem' : replyingTo.type === 'audio' ? '🎤 Áudio' : replyingTo.text}</p>
+                  </div>
+                  <button onClick={() => setReplyingTo(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {showEmojiPicker && (
+              <div ref={emojiPickerRef} className="absolute bottom-full left-4 mb-2 bg-white rounded-2xl shadow-2xl border border-slate-100 w-[320px] max-w-[90vw] h-96 flex flex-col z-50">
+                <div className="flex items-center gap-2 p-2 border-b border-slate-50 overflow-x-auto no-scrollbar">
+                  {EMOJI_CATEGORIES.map((cat, i) => (
+                    <button key={i} onClick={() => setEmojiCategory(i)} className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${emojiCategory === i ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50'}`}>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="grid grid-cols-6 gap-2">
+                    {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
+                      <button key={i} type="button" onClick={() => setInputText(prev => prev + emoji)} className="w-10 h-10 flex items-center justify-center text-xl hover:bg-slate-50 rounded-xl transition-colors">
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
             
             {!(isRecording || audioUrl) && (
-              <>
-                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-400 hover:text-brand-blue"><Smile className="w-6 h-6" /></button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-slate-400 hover:text-brand-blue"><Paperclip className="w-6 h-6" /></button>
-              </>
+              <div className="flex items-center gap-3 text-slate-400 shrink-0">
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-blue-500 transition-colors p-1"><Smile className="w-6 h-6 stroke-[1.5]" /></button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="hover:text-blue-500 transition-colors p-1"><Paperclip className="w-6 h-6 stroke-[1.5]" /></button>
+              </div>
             )}
 
             {audioUrl ? (
-              <div className="flex-1 flex items-center gap-2 md:gap-4 bg-white border border-slate-100 rounded-full px-2 py-1 shadow-sm">
+              <div className="flex-1 flex items-center gap-2 md:gap-4 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm">
                 <button type="button" onClick={handleCancelRecording} className="w-10 h-10 flex items-center justify-center shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>
                 <audio src={audioUrl} controls className="flex-1 h-10 min-w-0" />
-                <button type="button" onClick={handleSendAudio} className="w-10 h-10 shrink-0 bg-brand-blue text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"><Send className="w-4 h-4 ml-1" /></button>
               </div>
             ) : isRecording ? (
               <div className="flex-1 flex items-center justify-between bg-red-50/50 border border-red-100 rounded-full px-6 py-2 shadow-sm">
@@ -552,20 +663,26 @@ export default function ChatPage() {
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                   <span className="text-red-500 font-bold text-sm">{formatRecordingTime(recordingSeconds)}</span>
                 </div>
-                <div className="w-9" /> {/* Spacer para centralizar o timer visualmente */}
+                <div className="w-9" />
               </div>
             ) : (
-              <form onSubmit={handleSendMessage} className="flex-1 relative">
-                <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-4 px-6 bg-white border border-slate-100 rounded-full text-sm focus:ring-4 focus:ring-brand-blue/10 pr-14 shadow-sm" />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-blue text-white rounded-full flex items-center justify-center"><Send className="w-4 h-4 ml-1" /></button>
+              <form onSubmit={handleSendMessage} className="flex-1">
+                <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-3.5 px-6 bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-full text-[15px] shadow-sm transition-all outline-none" />
               </form>
             )}
             
-            {!audioUrl && (
-              <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-brand-blue text-white hover:bg-blue-600 shadow-md'}`}>
-                {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-5 h-5" />}
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {(!audioUrl || inputText.trim()) && (
+                <button onClick={handleSendMessage} className="w-11 h-11 bg-[#0066FF] text-white rounded-full flex items-center justify-center hover:bg-blue-700 shadow-md transition-transform transform hover:scale-105">
+                  <Send className="w-5 h-5 ml-0.5" />
+                </button>
+              )}
+              {!audioUrl && (
+                <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-105 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-[#0066FF] text-white hover:bg-blue-700'}`}>
+                  {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-5 h-5" />}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       ) : (
