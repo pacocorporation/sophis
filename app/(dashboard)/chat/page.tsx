@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -24,11 +24,7 @@ import {
   Inbox,
   X,
   Maximize2,
-  ChevronLeft,
-  Reply,
-  Copy,
-  Forward,
-  CornerUpLeft
+  ChevronLeft
 } from 'lucide-react';
 import { useStore, Message } from '@/hooks/use-store';
 import Image from 'next/image';
@@ -36,10 +32,8 @@ import ReactMarkdown from 'react-markdown';
 
 const generateId = () => `${Date.now()}`;
 
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
-
 export default function ChatPage() {
-  const { state, addMessage, deleteMessage, updateLeadStatus } = useStore();
+  const { state, addMessage, updateLeadStatus } = useStore();
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isNandaThinking, setIsNandaThinking] = useState(false);
@@ -51,14 +45,6 @@ export default function ChatPage() {
   const [emojiCategory, setEmojiCategory] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
-
-  // WhatsApp-style interactions
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [contextMenu, setContextMenu] = useState<{ msgId: string; x: number; y: number } | null>(null);
-  const [copiedToast, setCopiedToast] = useState(false);
-  const [reactions, setReactions] = useState<Record<string, string>>({});
-  const [showReactions, setShowReactions] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Audio recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -181,47 +167,10 @@ export default function ChatPage() {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
         setShowEmojiPicker(false);
       }
-      setContextMenu(null);
-      setShowReactions(null);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // WhatsApp-style handlers
-  const handleContextMenu = (e: React.MouseEvent | React.TouchEvent, msgId: string) => {
-    e.preventDefault();
-    const x = 'clientX' in e ? e.clientX : e.touches[0].clientX;
-    const y = 'clientY' in e ? e.clientY : e.touches[0].clientY;
-    setContextMenu({ msgId, x, y });
-    setShowReactions(null);
-  };
-
-  const handleReply = (msg: Message) => {
-    setReplyingTo(msg);
-    setContextMenu(null);
-    inputRef.current?.focus();
-  };
-
-  const handleCopyText = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setContextMenu(null);
-    setCopiedToast(true);
-    setTimeout(() => setCopiedToast(false), 2000);
-  };
-
-  const handleDeleteMsg = (msgId: string) => {
-    if (activeChat?.id) {
-      deleteMessage(activeChat.id, msgId);
-    }
-    setContextMenu(null);
-  };
-
-  const handleReaction = (msgId: string, emoji: string) => {
-    setReactions(prev => ({ ...prev, [msgId]: prev[msgId] === emoji ? '' : emoji }));
-    setShowReactions(null);
-    setContextMenu(null);
-  };
 
   const filteredChats = state.chats.filter(c => c.status === currentView);
   // Do NOT auto-select first chat — this breaks mobile show/hide panel logic
@@ -248,14 +197,12 @@ export default function ChatPage() {
       senderId: 'admin',
       text: inputText,
       timestamp: new Date().toISOString(),
-      type: 'text',
-      replyToId: replyingTo?.id,
+      type: 'text'
     };
 
     addMessage(targetChatId, userMessage);
     const promptToTrigger = inputText;
     setInputText('');
-    setReplyingTo(null);
 
     if (promptToTrigger.toLowerCase().includes('nanda') || promptToTrigger.length > 5) {
       await handleNandaTrigger(promptToTrigger, targetChatId);
@@ -385,19 +332,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] md:h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5 relative">
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {copiedToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className="fixed bottom-24 left-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl z-[200] flex items-center gap-2"
-          >
-            <CheckCheck className="w-4 h-4 text-green-400" />
-            Mensagem copiada
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="flex h-[calc(100dvh-8rem)] md:h-[calc(100vh-12rem)] bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-2xl shadow-blue-500/5">
       {/* ImageViewer Modal */}
       <AnimatePresence>
         {viewingImage && (
@@ -456,7 +391,7 @@ export default function ChatPage() {
 
       {activeChat ? (
         <div className={`${activeChatId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white w-full max-w-full overflow-hidden min-h-0`}>
-          <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white z-10 shadow-sm">
+          <div className="p-4 md:p-6 border-b border-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-3 md:gap-4">
               <button
                 onClick={() => setActiveChatId(null)}
@@ -464,90 +399,72 @@ export default function ChatPage() {
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-blue-100 flex items-center justify-center relative overflow-hidden">
-                <User className="w-6 h-6 text-blue-500" />
-              </div>
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-2xl bg-slate-100 relative"><Image src="/avatar-default.svg" alt="Avatar" fill className="object-cover" /></div>
               <div>
-                <p className="font-bold text-slate-800">{activeClient?.name}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 bg-[#25D366] rounded-full" />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Online</p>
-                </div>
+                <p className="font-bold text-slate-900">{activeClient?.name}</p>
+                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-xs font-bold text-slate-400 uppercase">Online</p></div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 transition-colors"><Phone className="w-4 h-4" /></button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 transition-colors"><Video className="w-5 h-5" /></button>
+            <div className="flex items-center gap-4">
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Phone className="w-5 h-5" /></button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600"><Video className="w-5 h-5" /></button>
             </div>
           </div>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed opacity-90 min-h-0">
-            {activeChat.messages.map((msg) => {
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-2 bg-[#efeae2] bg-[url('https://web.whatsapp.com/img/bg-chat-tile-light_04fcacde539c58cca6745483d4858c52.png')] bg-fixed opacity-100 min-h-0 relative">
+            {activeChat.messages.map((msg, index) => {
               const isMe = msg.senderId === 'admin';
               const isAI = msg.senderId === 'nanda';
+              
+              // Verifica se a mensagem anterior foi da mesma pessoa para agrupar (remover a cauda)
+              const previousMsg = index > 0 ? activeChat.messages[index - 1] : null;
+              const isFirstInGroup = previousMsg?.senderId !== msg.senderId;
+
               return (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    onContextMenu={(e) => handleContextMenu(e, msg.id)}
-                    className={`max-w-[75%] p-4 relative shadow-sm ${isMe ? 'bg-[#0066FF] text-white rounded-2xl rounded-tr-sm' : isAI ? 'bg-slate-800 text-white rounded-2xl rounded-tl-sm border-t-2 border-blue-400' : 'bg-[#F0F4F8] text-slate-700 rounded-2xl rounded-tl-sm'}`}
-                  >
-                    {isAI && <div className="flex items-center gap-2 mb-2 text-blue-400 font-bold text-[10px] uppercase"><Bot className="w-3 h-3" /> Nanda AI</div>}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+                  <div className={`max-w-[85%] md:max-w-[65%] px-2 pt-1.5 pb-1 text-[14.2px] leading-[19px] rounded-lg relative shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] ${isMe ? 'bg-[#d9fdd3] text-[#111b21]' : 'bg-white text-[#111b21]'} ${isFirstInGroup ? (isMe ? 'rounded-tr-none' : 'rounded-tl-none') : ''} ${!isFirstInGroup ? 'mt-0' : 'mt-1'}`}>
+                    
+                    {/* Tail */}
+                    {isFirstInGroup && isMe && <div className="absolute top-0 -right-2 w-2 h-3 bg-[#d9fdd3] [clip-path:polygon(0_0,100%_0,0_100%)]" />}
+                    {isFirstInGroup && !isMe && <div className="absolute top-0 -left-2 w-2 h-3 bg-white [clip-path:polygon(100%_0,0_0,100%_100%)]" />}
 
-                    {msg.replyToId && (
-                      <div className={`mb-2 p-2 rounded-xl text-xs border-l-4 ${isMe ? 'bg-white/10 border-white/50 text-white/90' : 'bg-black/5 border-slate-400 text-slate-600'}`}>
-                        <div className="font-bold mb-1">{activeChat.messages.find(m => m.id === msg.replyToId)?.senderId === 'admin' ? 'Você' : activeClient?.name}</div>
-                        <div className="truncate opacity-80">{activeChat.messages.find(m => m.id === msg.replyToId)?.text || 'Mensagem...'}</div>
-                      </div>
-                    )}
+                    {isAI && <div className="flex items-center gap-1 mb-1 text-[#54656f] font-medium text-[12px]"><Bot className="w-3 h-3" /> Nanda AI</div>}
+                    {!isMe && !isAI && isFirstInGroup && <div className="flex items-center gap-1 mb-1 text-[#027eb5] font-medium text-[12px]">{activeClient?.name}</div>}
 
-                    {msg.type === 'audio' && msg.data ? (
-                      <audio controls src={msg.data} className="w-full max-w-[220px] h-8" />
-                    ) : msg.type === 'image' && msg.data ? (
-                      <div className="relative group cursor-pointer" onClick={() => setViewingImage(msg.data || null)}>
-                        <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-2xl border-4 border-white/10" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white font-bold gap-2">
-                          <Maximize2 className="w-5 h-5" /> Ampliar
+                    <div className="relative">
+                      {msg.type === 'audio' && msg.data ? (
+                        <audio controls src={msg.data} className="w-full max-w-[240px] h-10 mb-2 mt-1" />
+                      ) : msg.type === 'image' && msg.data ? (
+                        <div className="relative group cursor-pointer mb-1 mt-1" onClick={() => setViewingImage(msg.data || null)}>
+                          <img src={msg.data} alt="Prescription" className="w-64 h-64 object-cover rounded-md" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold gap-2 rounded-md">
+                            <Maximize2 className="w-5 h-5" />
+                          </div>
                         </div>
-                      </div>
-                    ) : msg.type === 'file' && msg.data ? (
-                      <div className={`flex items-center gap-3 p-4 rounded-2xl min-w-[260px] border ${isMe || isAI
-                          ? 'bg-white/10 border-white/20 text-white'
-                          : 'bg-slate-200/50 border-slate-300/40 text-slate-800'
-                        }`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isMe || isAI ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-500'
-                          }`}>
-                          <FileText className="w-5 h-5" />
+                      ) : msg.type === 'file' && msg.data ? (
+                        <div className="flex items-center gap-3 p-3 rounded-md bg-black/5 mb-1 mt-1">
+                          <div className="w-10 h-10 rounded-md flex items-center justify-center bg-[#f04f5f] text-white">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{msg.text}</p>
+                            <span className="text-[11px] text-slate-500">Documento</span>
+                          </div>
+                          <a href={msg.data} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-black/10 rounded-full"><Maximize2 className="w-4 h-4 text-slate-500" /></a>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold truncate">{msg.text}</p>
-                          <span className={`text-[9px] font-bold uppercase ${isMe || isAI ? 'opacity-60' : 'text-slate-400'}`}>Receita em PDF</span>
+                      ) : (
+                        <div className="markdown-content inline-block pr-[60px] pb-1 break-words">
+                          <ReactMarkdown>{msg.text}</ReactMarkdown>
                         </div>
-                        <a
-                          href={msg.data}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`p-2 rounded-xl transition-colors shrink-0 ${isMe || isAI ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200 text-slate-600'
-                            }`}
-                        >
-                          <Maximize2 className="w-4 h-4" />
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="text-sm font-medium leading-relaxed markdown-content">
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
-                      </div>
-                    )}
+                      )}
 
-                    <div className={`text-[10px] mt-2 flex items-center justify-end gap-1 font-bold ${isMe || isAI ? 'text-white/70' : 'text-slate-400'}`}>
-                      {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                      {isMe && <CheckCheck className="w-3 h-3 text-white/90" />}
+                      {/* Floating Timestamp */}
+                      <div className="float-right -mt-[14px] flex items-center gap-1 text-[11px] text-[#667781] select-none">
+                        {isClient ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                        {isMe && <CheckCheck className="w-[14px] h-[14px] text-[#53bdeb]" />}
+                      </div>
+                      <div className="clear-both"></div>
                     </div>
-
-                    {reactions[msg.id] && (
-                      <div className={`absolute -bottom-3 ${isMe ? 'right-2' : 'left-2'} bg-white border border-slate-100 rounded-full px-2 py-0.5 text-xs shadow-sm z-10`}>
-                        {reactions[msg.id]}
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )
@@ -560,129 +477,50 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
-            
-            {contextMenu && (
-              <div
-                className="fixed z-50 bg-white rounded-2xl shadow-xl py-2 w-56 border border-slate-100"
-                style={{ top: Math.min(contextMenu.y, window.innerHeight - 200), left: Math.min(contextMenu.x, window.innerWidth - 250) }}
-              >
-                <div className="flex items-center justify-between px-4 pb-2 border-b border-slate-50 mb-2">
-                  {QUICK_REACTIONS.map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={(e) => { e.stopPropagation(); handleReaction(contextMenu.msgId, emoji); }}
-                      className="hover:scale-125 transition-transform text-lg"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => {
-                    const msg = activeChat.messages.find(m => m.id === contextMenu.msgId);
-                    if (msg) handleReply(msg);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  <Reply className="w-4 h-4" /> Responder
-                </button>
-                <button
-                  onClick={() => {
-                    const msg = activeChat.messages.find(m => m.id === contextMenu.msgId);
-                    if (msg) handleCopyText(msg.text);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  <Copy className="w-4 h-4" /> Copiar
-                </button>
-                <button
-                  onClick={() => handleDeleteMsg(contextMenu.msgId)}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" /> Apagar
-                </button>
-              </div>
-            )}
           </div>
 
-          <div className="p-3 md:p-6 flex items-center gap-3 bg-white border-t border-slate-100 safe-area-bottom relative">
-            
-            {replyingTo && (
-              <div className="absolute bottom-full left-0 right-0 p-3 bg-slate-50 border-t border-slate-100">
-                <div className="bg-white rounded-xl p-3 border-l-4 border-[#0066FF] flex items-center justify-between shadow-sm">
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-[#0066FF] mb-1">{replyingTo.senderId === 'admin' ? 'Você' : activeClient?.name}</p>
-                    <p className="text-xs text-slate-600 truncate">{replyingTo.type === 'image' ? '📷 Imagem' : replyingTo.type === 'audio' ? '🎤 Áudio' : replyingTo.text}</p>
-                  </div>
-                  <button onClick={() => setReplyingTo(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {showEmojiPicker && (
-              <div ref={emojiPickerRef} className="absolute bottom-full left-4 mb-2 bg-white rounded-2xl shadow-2xl border border-slate-100 w-[320px] max-w-[90vw] h-96 flex flex-col z-50">
-                <div className="flex items-center gap-2 p-2 border-b border-slate-50 overflow-x-auto no-scrollbar">
-                  {EMOJI_CATEGORIES.map((cat, i) => (
-                    <button key={i} onClick={() => setEmojiCategory(i)} className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${emojiCategory === i ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50'}`}>
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="grid grid-cols-6 gap-2">
-                    {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
-                      <button key={i} type="button" onClick={() => setInputText(prev => prev + emoji)} className="w-10 h-10 flex items-center justify-center text-xl hover:bg-slate-50 rounded-xl transition-colors">
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <div className="px-4 py-2 flex items-center gap-3 bg-[#f0f2f5] safe-area-bottom">
             <input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePrescriptionUpload} />
             
             {!(isRecording || audioUrl) && (
-              <div className="flex items-center gap-3 text-slate-400 shrink-0">
-                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-blue-500 transition-colors p-1"><Smile className="w-6 h-6 stroke-[1.5]" /></button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="hover:text-blue-500 transition-colors p-1"><Paperclip className="w-6 h-6 stroke-[1.5]" /></button>
+              <div className="flex items-center gap-3 shrink-0">
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-[#54656f] hover:text-slate-700 p-1"><Smile className="w-[26px] h-[26px]" /></button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingFile} className="text-[#54656f] hover:text-slate-700 p-1"><Paperclip className="w-[26px] h-[26px]" /></button>
               </div>
             )}
 
             {audioUrl ? (
-              <div className="flex-1 flex items-center gap-2 md:gap-4 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm">
-                <button type="button" onClick={handleCancelRecording} className="w-10 h-10 flex items-center justify-center shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>
+              <div className="flex-1 flex items-center gap-2 md:gap-4 bg-white rounded-lg px-2 py-1 shadow-sm">
+                <button type="button" onClick={handleCancelRecording} className="w-10 h-10 flex items-center justify-center shrink-0 text-[#54656f] hover:text-red-500 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>
                 <audio src={audioUrl} controls className="flex-1 h-10 min-w-0" />
+                <button type="button" onClick={handleSendAudio} className="w-10 h-10 shrink-0 bg-[#00a884] text-white rounded-full flex items-center justify-center hover:bg-[#06cf9c] transition-colors"><Send className="w-4 h-4 ml-1" /></button>
               </div>
             ) : isRecording ? (
-              <div className="flex-1 flex items-center justify-between bg-red-50/50 border border-red-100 rounded-full px-6 py-2 shadow-sm">
-                <button type="button" onClick={handleCancelRecording} className="text-slate-400 hover:text-red-500 transition-colors p-2"><Trash2 className="w-5 h-5" /></button>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-red-500 font-bold text-sm">{formatRecordingTime(recordingSeconds)}</span>
+              <div className="flex-1 flex items-center justify-between bg-white rounded-lg px-4 py-1.5 shadow-sm">
+                <button type="button" onClick={handleCancelRecording} className="text-[#54656f] hover:text-red-500 transition-colors p-2"><Trash2 className="w-5 h-5" /></button>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-slate-700 font-medium">{formatRecordingTime(recordingSeconds)}</span>
                 </div>
                 <div className="w-9" />
               </div>
             ) : (
-              <form onSubmit={handleSendMessage} className="flex-1">
-                <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Digite sua mensagem..." className="w-full py-3.5 px-6 bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-full text-[15px] shadow-sm transition-all outline-none" />
+              <form onSubmit={handleSendMessage} className="flex-1 flex items-center">
+                <input value={inputText} onChange={(e) => setInputText(e.target.value)} type="text" placeholder="Mensagem" className="w-full py-2.5 px-4 bg-white rounded-lg text-[15px] outline-none text-[#111b21] placeholder-[#667781] shadow-sm" />
               </form>
             )}
             
-            <div className="flex items-center gap-2 shrink-0">
-              {(!audioUrl || inputText.trim()) && (
-                <button onClick={handleSendMessage} className="w-11 h-11 bg-[#0066FF] text-white rounded-full flex items-center justify-center hover:bg-blue-700 shadow-md transition-transform transform hover:scale-105">
-                  <Send className="w-5 h-5 ml-0.5" />
+            {!audioUrl && (
+              inputText.trim() && !isRecording ? (
+                <button onClick={handleSendMessage} className="shrink-0 text-[#54656f] hover:text-slate-700 p-2 ml-1">
+                  <Send className="w-[26px] h-[26px]" />
                 </button>
-              )}
-              {!audioUrl && (
-                <button onClick={isRecording ? handleStopRecording : handleStartRecording} className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-105 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-[#0066FF] text-white hover:bg-blue-700'}`}>
-                  {isRecording ? <Square className="w-4 h-4 fill-white" /> : <Mic className="w-5 h-5" />}
+              ) : (
+                <button onClick={isRecording ? handleStopRecording : handleStartRecording} className="shrink-0 text-[#54656f] hover:text-slate-700 p-2 ml-1">
+                  {isRecording ? <Square className="w-[26px] h-[26px] text-red-500 fill-red-500" /> : <Mic className="w-[26px] h-[26px]" />}
                 </button>
-              )}
-            </div>
+              )
+            )}
           </div>
         </div>
       ) : (
